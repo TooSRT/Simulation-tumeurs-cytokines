@@ -1,0 +1,13 @@
+Parameter,Meaning,Value,Unit
+Nx,Number of cells on one side of the grid,10,/
+Delta x,Spacing,0.1,mm
+Delta t,Time step,1,h
+Dn,Diffusion coefficient of tumor cells,2e-5,mm^2/h
+n_max,Maximal density of one cell of the grid,16,/
+rn,Tumor cell proliferation rate,9.58e-3,h^-1
+Dc,Diffusion coefficient of O2 in blood,11.52,mm^2/h
+c,O2 concentration in blood,8.9,mmol/L
+kappa,O2 permeability coefficient in blood,1e-5, permeability_unit
+D_cytokine, Cytokines diffusion, 3600e-4,mm^2/h
+Rp, Cytokine production rate, 60, /h
+Rc, Cytokine consumption rate, 60, /h
