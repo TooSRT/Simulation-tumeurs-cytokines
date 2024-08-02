@@ -15,6 +15,7 @@ Usage:
 """
 
 import numpy as np
+import random
 from scipy.sparse import diags
 from scipy.sparse.linalg import cg
 
@@ -34,7 +35,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp, Rc):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp_vect, Rc_vect):
         """
         Initialize an O2_EDP object.
 
@@ -57,8 +58,8 @@ class cytokine_EDP:
         self.delta_x = delta_x
         self.delta_t = delta_t
         self.D_cytokine = D_cytokine
-        self.Rp= Rp
-        self.Rc= Rc
+        self.Rp_vect= Rp_vect
+        self.Rc_vect= Rc_vect
         self.B, self.supply = self.init_b(pos0)
         #self.b= self.init_b()
         self.A = self.init_A()
@@ -68,6 +69,7 @@ class cytokine_EDP:
         y,dx = np.linspace(delta_x,Lx-delta_x,Nx,retstep=True) #grid in y and step in x
         # in data grid form
         self.X, self.Y = np.meshgrid(x, y)
+
 
     def init_b(self,pos): 
         """
@@ -81,15 +83,14 @@ class cytokine_EDP:
         """
         Nx = self.Nx
         delta_t = self.delta_t
-        Rp = self.Rp
-        Rc = self.Rc
+        Rp_vect = self.Rp_vect #contient les vecteurs producteurs correspondant
+        Rc_vect = self.Rc_vect
         #b = delta_t * np.ones(Nx*Nx) *(1 + Rp -Rc)
         supply = np.zeros(Nx**2)
         assert (len(pos) < Nx**2 + 1)
-        for p in pos:
-            supply[p] = 1
-        B = delta_t*diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc')
-        supply = (Rp-Rc) * supply
+        for i, p in enumerate(pos):
+            supply[p] = max(1 + Rp_vect[i] - Rc_vect[i],0) #on prend le max pour éviter d'avoir des concentrations négatives
+        B = delta_t*diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc')  
         return B, supply #b
         
     

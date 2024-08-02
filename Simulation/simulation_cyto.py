@@ -22,7 +22,7 @@ class Simulation2:
         density_edp (Density_EDP): Object representing the density partial differential equation.
     """
 
-    def __init__(self, nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, D_cytokine, n_max, rn, Rp, Rc, Nb_cells_cyt):
+    def __init__(self, nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, D_cytokine, n_max, rn, Rp, Rc, Nb_cells_cyt, P_prod, P_cons):
         """
         Initializes an instance of the Simulation class.
 
@@ -39,16 +39,36 @@ class Simulation2:
             D_cytokine (float): Diffusion coefficient for cytokines.
             Rp (float): Cytokine production.
             Rc (float): cytokine consumption.
-            Nb_cells_cyt (int:) Number of cells producing cytokines.
+            Nb_cells_cyt (int): Number of cells producing cytokines.
+            P_prod (float): probability production of cytokines for a immune cell
+            P_cons (float): probability production of cytokines for a immune cell
         """
         self.Nb_cells_cyt=Nb_cells_cyt
         cells0 = self.init_cells0(Nx**2, nb_tumor, distrib)
         n0 = np.bincount(cells0, minlength=Nx**2)
+
+        #Initialisation of cells and their phenotype
         pos0 = np.random.randint(0, int(Nx*Nx)+1, Nb_cells_cyt) #self.init_pos0() #permet de modifier la position et d'ajouter des sources
+        Vect_unif = vecteur_uniforme = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
+        
+        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotype actif produisant
+        Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant
+        
+        #(revoir les probas utilisés)
+        for j in range(len(pos0)):
+            if Vect_unif[j] <= P_prod:  #Déterminer aléatoirement les producteurs
+                Pheno_actif_prod[j] = 1
+            if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les consommateurs
+                Pheno_actif_cons[j] = 1
+
+        #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
+        self.Rp_vect = Pheno_actif_prod * Rp 
+        self.Rc_vect = Pheno_actif_cons * Rc
+
         c0 = np.ones(Nx**2) #self.init_c0()
         self.density_grid = Density_Grid(len(n0), unit)
         self.o2_grid = cytokine_Grid(unit)
-        self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp, Rc)
+        self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, self.Rp_vect, self.Rc_vect)
         self.density_edp = Density_EDP(Nx, cells0, n0, n_max, delta_x, delta_t, Dn, rn)
         self.prepare_plot() 
 

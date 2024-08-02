@@ -29,7 +29,7 @@ def main():
     ####################
 
     nb_tumor = 100
-    Nb_cells_cyt = random.randint(25,50)
+    Nb_cells_cyt = 150
     unit = "cm"
     distrib = "gaussian"
     proliferation = True
@@ -48,7 +48,7 @@ def main():
     if unit == "mm" :
         data = pd.DataFrame(pd.read_csv('parameters/parameters_mm.csv'))
 
-    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Rp, Rc = data['Value']
+    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Rp, Rc, P_cons, P_prod = data['Value']
     Nx = int(Nx)
     if(not proliferation) :
         rn = 0
@@ -58,7 +58,7 @@ def main():
     ##############
 
     #simulation = Simulation(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa)
-    simulation = Simulation2(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, D_cytokine, n_max, rn, Rp, Rc, Nb_cells_cyt) #rajouter c ou cyto pour conditions ini
+    simulation = Simulation2(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, D_cytokine, n_max, rn, Rp, Rc, Nb_cells_cyt, P_prod, P_cons) #rajouter c ou cyto pour conditions ini
     simulation.load_simulation(iter_max, iter_print)
 
 '''

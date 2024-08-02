@@ -67,7 +67,7 @@ After launch simulation in the main file, a plot repertory is created. In this r
 ## Authors
 
 - William Langue
-- Robin Laurent
+- Théo Servotte
 - Théo Dufresne
 
 ### Research supervisor
