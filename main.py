@@ -48,7 +48,7 @@ def main():
     if unit == "mm" :
         data = pd.DataFrame(pd.read_csv('parameters/parameters_mm.csv'))
 
-    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Rp, Rc, P_cons, P_prod = data['Value']
+    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Rp, Rc, P_prod, P_cons = data['Value']
     Nx = int(Nx)
     if(not proliferation) :
         rn = 0

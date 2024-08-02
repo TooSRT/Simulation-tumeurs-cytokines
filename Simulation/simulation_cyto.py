@@ -49,7 +49,7 @@ class Simulation2:
 
         #Initialisation of cells and their phenotype
         pos0 = np.random.randint(0, int(Nx*Nx)+1, Nb_cells_cyt) #self.init_pos0() #permet de modifier la position et d'ajouter des sources
-        Vect_unif = vecteur_uniforme = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
+        Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
         
         Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotype actif produisant
         Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant
@@ -60,6 +60,7 @@ class Simulation2:
                 Pheno_actif_prod[j] = 1
             if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les consommateurs
                 Pheno_actif_cons[j] = 1
+                print('Hello world')
 
         #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
         self.Rp_vect = Pheno_actif_prod * Rp 

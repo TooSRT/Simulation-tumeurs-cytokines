@@ -89,8 +89,8 @@ class cytokine_EDP:
         supply = np.zeros(Nx**2)
         assert (len(pos) < Nx**2 + 1)
         for i, p in enumerate(pos):
-            supply[p] = max(1 + Rp_vect[i] - Rc_vect[i],0) #on prend le max pour éviter d'avoir des concentrations négatives
-        B = delta_t*diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc')  
+            supply[p] = 1 + Rp_vect[i] - Rc_vect[i] #on prend le max pour éviter d'avoir des concentrations négatives
+        B = delta_t*diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc') 
         return B, supply #b
         
     
@@ -138,7 +138,7 @@ class cytokine_EDP:
         B = self.B
         supply = self.supply
         cyto = self.cyto
-        b = B * cyto + supply
+        b = B @ cyto + supply
         return b
     
     def cytokine_diffusion(self):
