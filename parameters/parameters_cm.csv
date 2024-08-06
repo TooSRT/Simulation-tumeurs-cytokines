@@ -9,7 +9,7 @@ Dc,Diffusion coefficient of O2 in blood,0.1152,cm^2/h
 c,O2 concentration in blood,8.9,mmol/L
 kappa,O2 permeability coefficient in blood,1e-5, permeability_unit
 D_cytokine, Cytokines diffusion, 3600e-6,cm^2/h
-Rp, Cytokine production rate, 150, /h
-Rc, Cytokine consumption rate, 150, /h
-P_prod, production  probability of cytokines for a immune cell, 0.4, /
-P_cons, consumption  probability of cytokines for a immune cell, 0.2, /
+Rp, Cytokine production rate, 200, /h
+Rc, Cytokine consumption rate, 200, /h
+P_prod, production probability of cytokines for a immune cell, 0.2, /
+P_cons, consumption probability of cytokines for a immune cell, 0.2, /

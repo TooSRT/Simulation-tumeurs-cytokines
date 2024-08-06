@@ -60,13 +60,12 @@ class Simulation2:
                 Pheno_actif_prod[j] = 1
             if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les consommateurs
                 Pheno_actif_cons[j] = 1
-                print('Hello world')
 
         #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
         self.Rp_vect = Pheno_actif_prod * Rp 
         self.Rc_vect = Pheno_actif_cons * Rc
 
-        c0 = np.ones(Nx**2) #self.init_c0()
+        c0 = np.ones(Nx**2) #self.init_c0() #conditions initiales
         self.density_grid = Density_Grid(len(n0), unit)
         self.o2_grid = cytokine_Grid(unit)
         self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, self.Rp_vect, self.Rc_vect)

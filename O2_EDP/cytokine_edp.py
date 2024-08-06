@@ -52,7 +52,7 @@ class cytokine_EDP:
             tol (float): Tolerance of the conjugate gradient algorithm.
         """
         self.Nx = Nx
-        self.cyto = c0 #à revoir
+        self.cyto = c0 #à revoir ajouter une valeur initiale de concentration en cytokine
         self.pos = pos0
         self.tol = tol 
         self.delta_x = delta_x
@@ -69,8 +69,7 @@ class cytokine_EDP:
         y,dx = np.linspace(delta_x,Lx-delta_x,Nx,retstep=True) #grid in y and step in x
         # in data grid form
         self.X, self.Y = np.meshgrid(x, y)
-
-
+    
     def init_b(self,pos): 
         """
         Initialize the matrix B and the vector supply.
@@ -85,13 +84,13 @@ class cytokine_EDP:
         delta_t = self.delta_t
         Rp_vect = self.Rp_vect #contient les vecteurs producteurs correspondant
         Rc_vect = self.Rc_vect
-        #b = delta_t * np.ones(Nx*Nx) *(1 + Rp -Rc)
         supply = np.zeros(Nx**2)
         assert (len(pos) < Nx**2 + 1)
         for i, p in enumerate(pos):
-            supply[p] = 1 + Rp_vect[i] - Rc_vect[i] #on prend le max pour éviter d'avoir des concentrations négatives
+            print(f"Position: {p}, Production: {Rp_vect[i]:.4f}, Consommation: {Rc_vect[i]*self.cyto[self.pos][i]:.4f}")
+            supply[p] = delta_t*(Rp_vect[i] - Rc_vect[i]*self.cyto[self.pos][i]) #self.cyto[self.pos][i]=concentration en cyto à une pos donnée
         B = delta_t*diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc') 
-        return B, supply #b
+        return B, supply 
         
     
     #Matrice A similaire à l'oxygène avec les même conditions aux bords
@@ -136,17 +135,18 @@ class cytokine_EDP:
             numpy.ndarray: Iterated vector b.
         """
         B = self.B
+        #b = self.init_b(self.pos) #mettre à jour le vecteur b à chaque itération (inutile pour le moment)
         supply = self.supply
         cyto = self.cyto
         b = B @ cyto + supply
         return b
     
     def cytokine_diffusion(self):
-        """
-        Perform cytokine diffusion calculation.
-        """
         A = self.A
         b = self.iter_b()
-        # Solve linear system using Conjugate Gradient method
-        self.cyto = cg(A, b, self.cyto, self.tol)[0]
+        self.cyto, info = cg(A, b, self.cyto, tol=self.tol)
+        if info != 0:
+            print("Conjugate gradient did not converge")
+        self.cyto = np.maximum(self.cyto, 0)  #empêche les valeurs négatives pour la concentration
+        
 

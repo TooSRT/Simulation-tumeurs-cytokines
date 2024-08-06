@@ -57,7 +57,6 @@ class cytokine_Grid :
 
         Args:
             c (numpy.ndarray): Array representing the grid.
-            cblood (float): O2 concentration in blood vessel.
             Nx (int): Size of the grid.
             t (int): Time step.
         """
