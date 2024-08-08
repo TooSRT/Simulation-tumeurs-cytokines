@@ -18,6 +18,8 @@ import numpy as np
 import random
 from scipy.sparse import diags
 from scipy.sparse.linalg import cg
+import sys
+np.set_printoptions(threshold=sys.maxsize)
 
 class cytokine_EDP:
     """
@@ -60,9 +62,8 @@ class cytokine_EDP:
         self.D_cytokine = D_cytokine
         self.Rp_vect= Rp_vect
         self.Rc_vect= Rc_vect
-        self.B, self.supply = self.init_b(pos0)
-        #self.b= self.init_b()
         self.A = self.init_A()
+        self.B, self.supply, A_new = self.init_b(pos0)
         # Attributs utiles pour la grille 
         Lx = 0.1
         x,dx = np.linspace(delta_x,Lx-delta_x,Nx,retstep=True) #grid in x and step in x
@@ -85,12 +86,17 @@ class cytokine_EDP:
         Rp_vect = self.Rp_vect #contient les vecteurs producteurs correspondant
         Rc_vect = self.Rc_vect
         supply = np.zeros(Nx**2)
+        identify_consum_immune_cells = np.zeros((Nx**2,))
         assert (len(pos) < Nx**2 + 1)
         for i, p in enumerate(pos):
             print(f"Position: {p}, Production: {Rp_vect[i]:.4f}, Consommation: {Rc_vect[i]*self.cyto[self.pos][i]:.4f}")
-            supply[p] = delta_t*(Rp_vect[i] - Rc_vect[i]*self.cyto[self.pos][i]) #self.cyto[self.pos][i]=concentration en cyto à une pos donnée
-        B = delta_t*diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc') 
-        return B, supply 
+            supply[p] = delta_t*(Rp_vect[i])
+            if Rc_vect[i]*self.cyto[self.pos][i] > 0:
+                identify_consum_immune_cells[p] = delta_t*Rc_vect[i]
+
+        A_new = self.A + diags([identify_consum_immune_cells],[0], shape=(Nx**2,Nx**2),format='csc')
+        B = diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc') 
+        return B, supply, A_new 
         
     
     #Matrice A similaire à l'oxygène avec les même conditions aux bords
@@ -122,7 +128,7 @@ class cytokine_EDP:
         
         diagonals = [-np.ones(Nx**2-Nx), left_diag, center_diag,right_diag,-np.ones(Nx**2 - Nx)]
         offsets = [-Nx,-1,0,1,Nx] 
-        A = diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (D_cytokine*delta_t/delta_x**2)*diags(diagonals,offsets, shape=(Nx**2,Nx**2), format='csc')
+        A = diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (D_cytokine*delta_t/delta_x**2)*diags(diagonals,offsets, shape=(Nx**2,Nx**2) , format='csc') 
 
         return A
     
@@ -134,19 +140,16 @@ class cytokine_EDP:
         Returns:
             numpy.ndarray: Iterated vector b.
         """
-        B = self.B
-        #b = self.init_b(self.pos) #mettre à jour le vecteur b à chaque itération (inutile pour le moment)
-        supply = self.supply
+        B, supply, A_new = self.init_b(self.pos) #mettre à jour le vecteur b à chaque itération 
         cyto = self.cyto
-        b = B @ cyto + supply
-        return b
+        b = cyto + supply
+        return b, A_new
     
     def cytokine_diffusion(self):
-        A = self.A
-        b = self.iter_b()
-        self.cyto, info = cg(A, b, self.cyto, tol=self.tol)
+        b, A_new = self.iter_b()
+        self.cyto, info = cg(A_new, b, self.cyto, tol=self.tol)
         if info != 0:
             print("Conjugate gradient did not converge")
-        self.cyto = np.maximum(self.cyto, 0)  #empêche les valeurs négatives pour la concentration
+        print("Min cyto = " +str(min(self.cyto)))
         
 
