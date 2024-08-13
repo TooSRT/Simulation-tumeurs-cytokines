@@ -15,7 +15,7 @@ Usage:
 """
 
 import numpy as np
-import random
+from O2_EDP.tcells_mvt import Tcells_mvt
 from scipy.sparse import diags
 from scipy.sparse.linalg import cg
 import sys
@@ -37,7 +37,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp_vect, Rc_vect):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp_vect, Rc_vect, tcells_mvt):
         """
         Initialize an O2_EDP object.
 
@@ -54,7 +54,7 @@ class cytokine_EDP:
             tol (float): Tolerance of the conjugate gradient algorithm.
         """
         self.Nx = Nx
-        self.cyto = c0 #à revoir ajouter une valeur initiale de concentration en cytokine
+        self.cyto = c0 #à revoir 
         self.pos = pos0
         self.tol = tol 
         self.delta_x = delta_x
@@ -64,6 +64,7 @@ class cytokine_EDP:
         self.Rc_vect= Rc_vect
         self.A = self.init_A()
         self.B, self.supply, A_new = self.init_b(pos0)
+        self.tcells_mvt = tcells_mvt
         # Attributs utiles pour la grille 
         Lx = 0.1
         x,dx = np.linspace(delta_x,Lx-delta_x,Nx,retstep=True) #grid in x and step in x
@@ -89,7 +90,7 @@ class cytokine_EDP:
         identify_consum_immune_cells = np.zeros((Nx**2,))
         assert (len(pos) < Nx**2 + 1)
         for i, p in enumerate(pos):
-            print(f"Position: {p}, Production: {Rp_vect[i]:.4f}, Consommation: {Rc_vect[i]*self.cyto[self.pos][i]:.4f}")
+            #print(f"Position: {p}, Production: {Rp_vect[i]:.4f}, Consommation: {Rc_vect[i]*self.cyto[self.pos][i]:.4f}")
             supply[p] = delta_t*(Rp_vect[i])
             if Rc_vect[i]*self.cyto[self.pos][i] > 0:
                 identify_consum_immune_cells[p] = delta_t*Rc_vect[i]
@@ -132,7 +133,6 @@ class cytokine_EDP:
 
         return A
     
-    
     def iter_b(self):
         """
         Perform iteration for the vector b.
@@ -150,6 +150,8 @@ class cytokine_EDP:
         self.cyto, info = cg(A_new, b, self.cyto, tol=self.tol)
         if info != 0:
             print("Conjugate gradient did not converge")
-        print("Min cyto = " +str(min(self.cyto)))
+        #print("Min cyto = " +str(min(self.cyto)))
         
+        self.tcells_mvt.movement() #màj des positions à chaque itération
+        self.pos = self.tcells_mvt.pos
 

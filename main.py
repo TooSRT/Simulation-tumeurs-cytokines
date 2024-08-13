@@ -12,6 +12,7 @@ import pandas as pd
 import random
 from Simulation.simulation import Simulation
 from Simulation.simulation_cyto import Simulation2
+from Simulation.simulation_test import Simulation3
 from O2_EDP.o2_edp import O2_EDP
 from O2_EDP.cytokine_edp import cytokine_EDP
 from O2_EDP.grid_O2 import O2_Grid
@@ -28,8 +29,8 @@ def main():
     # MODEL CONDITIONS #
     ####################
 
-    nb_tumor = 100
-    Nb_cells_cyt = 150
+    nb_tumor = 10
+    Nb_cells_cyt = 10
     unit = "cm"
     distrib = "gaussian"
     proliferation = True
@@ -48,9 +49,8 @@ def main():
     if unit == "mm" :
         data = pd.DataFrame(pd.read_csv('parameters/parameters_mm.csv'))
 
-    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Rp, Rc, P_prod, P_cons = data['Value']
-
-
+    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Rp, Rc, P_prod, P_cons, w_max, D_tcells = data['Value']
+    
     Nx = int(Nx)
     if(not proliferation) :
         rn = 0
@@ -60,9 +60,9 @@ def main():
     ##############
 
     #simulation = Simulation(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa)
-    simulation = Simulation2(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, D_cytokine, n_max, rn, Rp, Rc, Nb_cells_cyt, P_prod, P_cons) #rajouter c ou cyto pour conditions ini
+    #simulation = Simulation2(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, D_cytokine, n_max, rn, Rp, Rc, Nb_cells_cyt, P_prod, P_cons) #rajouter c ou cyto pour conditions ini
+    simulation = Simulation3(nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Rp, Rc, P_prod, P_cons, D_tcells)
     simulation.load_simulation(iter_max, iter_print)
-
 '''
     ###############
     # CRASH TESTS #

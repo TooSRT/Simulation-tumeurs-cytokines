@@ -5,52 +5,48 @@ import os
 import re
 from Density_EDP.density_edp import Density_EDP
 from Density_EDP.grid_density import Density_Grid
-from O2_EDP.cytokine_edp import cytokine_EDP
+from O2_EDP.cytokine_edp import cytokine_EDP 
 from O2_EDP.grid_cytokine import cytokine_Grid
-#from moviepy.editor import ImageSequenceClip
+from O2_EDP.tcells_mvt import Tcells_mvt
 
-class Simulation2:
-    """
-    Simulation class
-
-    This class represents a simulation of tumor growth.
-
-    Attributes:
-        density_grid (Density_Grid): Object representing the density grid.
-        cytokine_grid (cytokine_Grid): Object representing the O2 concentration grid.
-        cytokine_edp (cytokine_EDP): Object representing the cytokine partial differential equation.
-        density_edp (Density_EDP): Object representing the density partial differential equation.
-    """
-
-    def __init__(self, nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, D_cytokine, n_max, rn, Rp, Rc, Nb_cells_cyt, P_prod, P_cons):
+class Simulation3:
+    def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Rp, Rc, P_prod, P_cons, D_tcells):
         """
         Initializes an instance of the Simulation class.
 
         Args:
             nb_tumor (int): Number of initial tumor cells.
-            unit (str): Measurement unit of the grid area (default: "mm").
-            distrib (str): Distribution of initial tumor cells (default: "uniform").
             tol (float): Tolerance for numerical computations.
             Nx (int): Size of the grid.
+            unit (str): Measurement unit of the grid area (default: "cm").
+            distrib (str): Distribution of initial tumor cells (default: "uniform").
             delta_x (float): Spatial step size.
             delta_t (float): Time step size.
             Dn (float): Diffusion coefficient for tumor cells.
             rn (float): Proliferation rate of tumor cells.
+            w_max (float): Max density on each case.
             D_cytokine (float): Diffusion coefficient for cytokines.
+            D_tcells (float): Diffusion coefficient for tcells.
             Rp (float): Cytokine production.
             Rc (float): cytokine consumption.
             Nb_cells_cyt (int): Number of cells producing cytokines.
             P_prod (float): probability production of cytokines for a immune cell
             P_cons (float): probability production of cytokines for a immune cell
-        """
+        """     
+        Nx = int(Nx)
         cells0 = self.init_cells0(Nx**2, nb_tumor, distrib)
-        n0 = np.bincount(cells0, minlength=Nx**2)
+        c0 = np.ones(Nx**2)  # Initial cytokine concentration
+        n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor concentration
 
         #Initialisation of cells and their phenotype
-        pos0 = np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() #permet de modifier la position et d'ajouter des sources
+        #pos0 = np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
+        pos0 = np.array([int(Nx*Nx/2-1), int(Nx*Nx/4-1)])
+        #T0 = pos0
+        w0 = np.zeros(Nx**2)
+        w0[int(Nx*Nx/2-2)] = 1
         Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
         
-        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotype actif produisant
+        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotyspe actif produisant
         Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant
         
         #(revoir les probas utilisés)
@@ -61,14 +57,15 @@ class Simulation2:
                 Pheno_actif_cons[j] = 1
 
         #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
-        self.Rp_vect = Pheno_actif_prod * Rp 
-        self.Rc_vect = Pheno_actif_cons * Rc
+        Rp_vect = Pheno_actif_prod * Rp 
+        Rc_vect = Pheno_actif_cons * Rc
 
-        c0 = np.ones(Nx**2) #self.init_c0() #conditions initiales
+        self.tcells_mvt_instance = Tcells_mvt(Nx, pos0, w0, w_max, delta_x, delta_t, D_tcells)
+        self.cytokine_model = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp_vect, Rc_vect, tcells_mvt=self.tcells_mvt_instance)
         self.density_grid = Density_Grid(len(n0), unit)
         self.o2_grid = cytokine_Grid(unit)
-        self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, self.Rp_vect, self.Rc_vect)
-        self.density_edp = Density_EDP(Nx, cells0, n0, n_max, delta_x, delta_t, Dn, rn)
+        #self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, self.Rp_vect, self.Rc_vect)
+        self.density_edp = Density_EDP(Nx, cells0, n0, w_max, delta_x, delta_t, Dn, rn)
         self.prepare_plot() 
 
     def init_cells0(self, nb_cells, nb_tumor, choice="uniform"):
@@ -160,7 +157,7 @@ class Simulation2:
             i (int): Time step.
         """
         #self.o2_edp.plot_fig() # plot provisoire
-        self.o2_grid.print(self.cytokine_edp.cyto, self.cytokine_edp.X, self.cytokine_edp.Y, self.cytokine_edp.Nx, i * self.cytokine_edp.delta_t)
+        self.o2_grid.print(self.cytokine_model.cyto, self.cytokine_model.X, self.cytokine_model.Y, self.cytokine_model.Nx, i * self.cytokine_model.delta_t)
     
     def growth_print(self):
         """
@@ -194,7 +191,7 @@ class Simulation2:
         """
         Performs a single time step of simulation.
         """
-        self.cytokine_edp.cytokine_diffusion()
+        self.cytokine_model.cytokine_diffusion()
         cellsmouv, cellspro, choice = self.density_edp.proliferation()
         m0 = len(cellsmouv)
         self.density_edp.movement(cellsmouv, cellspro, m0, choice)
