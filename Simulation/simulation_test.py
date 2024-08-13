@@ -10,7 +10,7 @@ from O2_EDP.grid_cytokine import cytokine_Grid
 from O2_EDP.tcells_mvt import Tcells_mvt
 
 class Simulation3:
-    def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Rp, Rc, P_prod, P_cons, D_tcells):
+    def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Rp, Rc, P_prod, P_cons,D_tcells):
         """
         Initializes an instance of the Simulation class.
 
@@ -39,29 +39,12 @@ class Simulation3:
         n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor concentration
 
         #Initialisation of cells and their phenotype
-        #pos0 = np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
-        pos0 = np.array([int(Nx*Nx/2-1), int(Nx*Nx/4-1)])
+        pos0 = np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
         #T0 = pos0
-        w0 = np.zeros(Nx**2)
-        w0[int(Nx*Nx/2-2)] = 1
-        Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
-        
-        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotyspe actif produisant
-        Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant
-        
-        #(revoir les probas utilisés)
-        for j in range(len(pos0)):
-            if Vect_unif[j] <= P_prod:  #Déterminer aléatoirement les producteurs
-                Pheno_actif_prod[j] = 1
-            if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les consommateurs
-                Pheno_actif_cons[j] = 1
-
-        #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
-        Rp_vect = Pheno_actif_prod * Rp 
-        Rc_vect = Pheno_actif_cons * Rc
+        w0 = np.zeros(Nx**2) #+t0+n0
 
         self.tcells_mvt_instance = Tcells_mvt(Nx, pos0, w0, w_max, delta_x, delta_t, D_tcells)
-        self.cytokine_model = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp_vect, Rc_vect, tcells_mvt=self.tcells_mvt_instance)
+        self.cytokine_model = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp, Rc, P_prod, P_cons, tcells_mvt=self.tcells_mvt_instance)
         self.density_grid = Density_Grid(len(n0), unit)
         self.o2_grid = cytokine_Grid(unit)
         #self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, self.Rp_vect, self.Rc_vect)

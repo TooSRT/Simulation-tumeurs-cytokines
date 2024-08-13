@@ -211,52 +211,5 @@ class Tcells_mvt:
                 #movement_vector[idx] = 0
                 print(f"Cellule {idx} reste sur place.")
             #print(movement_vector)
-            """
-            for idx in range(len(self.pos)):
-                #Moove to left
-                if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left = lambda_val/2*self.psi(self.w[i-1]) 
-                else:
-                    T_left = 0
-                #Moove to right
-                if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = (lambda_val / 2) * self.psi(self.w[i+1])
-                else:
-                   T_right = 0
-                #Stay
-                T_stay = 1 - T_left - T_right
-                '''
-                #Moove below
-                if 0 < i < len(self.Nx): 
-                    T_below=....
-                else:
-                    T_below=0
-
-                #Moove upper
-                if  len(self.Nx*self.Nx) -  len(self.Nx) < i < len(self.Nx*self.Nx) 
-                    T_upper=...
-                else:
-                    T_upper=0
-                '''
-                prob_moove[idx, 0] = T_left
-                prob_moove[idx, 1] = T_right
-                prob_moove[idx, 2] = T_stay
-
-                #Choose a direction based on probability 
-                print(prob_moove)
-                moove = np.random.choice(['left', 'right', 'stay'], p=[T_left, T_right, T_stay])
-            
-                if moove == 'left':
-                    movement_vector[idx] = -1 #-1
-                    print(f"Cellule {idx} se déplace vers la gauche.")
-                elif moove == 'right':
-                    movement_vector[idx] = 1 #1
-                    print(f"Cellule {idx} se déplace vers la droite.")
-                #If stay, movement is 0 (by default)
-                else:
-                    #movement_vector[idx] = 0
-                    print(f"Cellule {idx} reste sur place.")
-                #print(movement_vector)
-            """
 
         self.pos = self.pos + movement_vector #Update positions

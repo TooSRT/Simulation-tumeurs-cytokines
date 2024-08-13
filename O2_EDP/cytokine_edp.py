@@ -37,7 +37,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp_vect, Rc_vect, tcells_mvt):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp, Rc, P_prod, P_cons, tcells_mvt):
         """
         Initialize an O2_EDP object.
 
@@ -60,8 +60,25 @@ class cytokine_EDP:
         self.delta_x = delta_x
         self.delta_t = delta_t
         self.D_cytokine = D_cytokine
-        self.Rp_vect= Rp_vect
-        self.Rc_vect= Rc_vect
+        self.Rp = Rp
+        self.Rc = Rc
+
+        Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
+        
+        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotyspe actif produisant
+        Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant
+        
+        #(revoir les probas utilisés)
+        for j in range(len(pos0)):
+            if Vect_unif[j] <= P_prod:  #Déterminer aléatoirement les producteurs
+                Pheno_actif_prod[j] = 1
+            if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les consommateurs
+                Pheno_actif_cons[j] = 1
+
+        #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
+        self.Rp_vect = Pheno_actif_prod * Rp 
+        self.Rc_vect = Pheno_actif_cons * Rc
+
         self.A = self.init_A()
         self.B, self.supply, A_new = self.init_b(pos0)
         self.tcells_mvt = tcells_mvt
