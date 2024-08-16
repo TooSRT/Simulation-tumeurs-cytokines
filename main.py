@@ -9,7 +9,6 @@ Date: 17/03/2024
 
 import numpy as np
 import pandas as pd
-import random
 from Simulation.simulation import Simulation
 from Simulation.simulation_cytokines import Simulation2
 from O2_EDP.o2_edp import O2_EDP

@@ -50,6 +50,8 @@ class cytokine_EDP:
             cyto (numpy.ndarray): Vector of cytokine concentration.
             R_p (float): Cytokine production.
             R_c (float): Cytokine consumption.
+            P_prod (float): Probability of Tcells to be a cytokine producer
+            P_cons (float): Probability of Tcells to be a cytokine consumer
             pos (numpy.ndarray): Position's vector of blood vessels.
             tol (float): Tolerance of the conjugate gradient algorithm.
         """
@@ -115,7 +117,6 @@ class cytokine_EDP:
         A_new = self.A + diags([identify_consum_immune_cells],[0], shape=(Nx**2,Nx**2),format='csc')
         B = diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc') 
         return B, supply, A_new 
-        
     
     #Matrice A similaire à l'oxygène avec les même conditions aux bords
     def init_A(self):

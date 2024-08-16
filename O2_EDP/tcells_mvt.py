@@ -171,15 +171,11 @@ class Tcells_mvt:
         Tcells_memorize = np.zeros(l,dtype=bool) #initialize our vector of Tcells under cytokine influence
         for idx, i in enumerate(self.pos):
 
-        ##############
-        # A VERIFIER #
-        ##############
-
 #-----------T-cells under cytokine influence-----------
             if Rc_vect[idx]>0:
-                Tcells_memorize[idx]=True #save T-cells under cytokine influence
+                Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
 
-            if Tcells_memorize[idx]: #If our T cells as already been influenced by cytokines 
+            if Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines 
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
                     T_left = 0

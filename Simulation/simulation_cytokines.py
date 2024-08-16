@@ -40,9 +40,9 @@ class Simulation2:
 
         #Initialisation of cells and their phenotype
         pos0 = np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
-        T0 = np.zeros(Nx**2) #Initial T-cells density
+        T0 = np.zeros(Nx**2) #Initial T-cells density in each case
         for i in pos0:
-            T0[i] = 1
+                T0[i] += 1
 
         w0 = T0 + n0 #Initial density 
 
