@@ -1,5 +1,5 @@
 Parameter,Meaning,Value,Unit
-Nx,Number of cells on one side of the grid,100,/
+Nx,Number of cells on one side of the grid, 100,/
 Delta x,Spacing,0.016,cm
 Delta t,Time step,1,h
 Dn,Diffusion coefficient of tumor cells,2e-7,cm^2/h

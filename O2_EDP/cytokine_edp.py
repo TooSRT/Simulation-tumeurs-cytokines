@@ -25,7 +25,7 @@ class cytokine_EDP:
     """
     cytokine_EDP class
 
-    This class represents a model for cytokine evolution using the HDC-EDP method.
+    This class represents a model for cytokine evolution.
 
     Attributes:
         Nx (int): Size of the grid.
@@ -169,6 +169,6 @@ class cytokine_EDP:
             print("Conjugate gradient did not converge")
         #print("Min cyto = " +str(min(self.cyto)))
         
-        self.tcells_mvt.movement() #màj des positions à chaque itération
+        self.tcells_mvt.movement(self.Rc_vect) #màj des positions à chaque itération
         self.pos = self.tcells_mvt.pos
 

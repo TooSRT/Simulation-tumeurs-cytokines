@@ -36,7 +36,7 @@ class Density_EDP:
         cells_size (numpy.ndarray): List of the number of cells per iteration.
     """
 
-    def __init__(self, Nx, cells0, n0, n_max, delta_x, delta_t, Dn, rn):
+    def __init__(self, Nx, cells0, w0, T0, n0, n_max, delta_x, delta_t, Dn, rn):
         """
         Initialize a Density_EDP object.
 
@@ -44,7 +44,9 @@ class Density_EDP:
             nb_cells (int): Number of cells in the grid.
             Nx (int): Size of the grid.
             cells0 (numpy.ndarray): Initial cancer cell vector.
-            n0 (numpy.ndarray): Initial density vector.
+            w0 (numpy.ndarray): Initial density vector (T-cells + tumor).
+            n0 (numpy.ndarray): Initial density vector (tumor).
+            T0 (numpy.ndarray): Initial density vector (T-cells).
             n_max (int): Maximum density value.
             delta_x (float): Spatial step size.
             delta_t (int): Time step size (in hours).
@@ -53,7 +55,9 @@ class Density_EDP:
         """
         self.Nx = Nx
         self.cells = cells0 
-        self.n = n0 
+        self.w = w0 
+        self.T = T0
+        self.n = n0
         self.n_max = n_max
         self.delta_x = delta_x
         self.delta_t = delta_t
@@ -126,12 +130,31 @@ class Density_EDP:
     
     def n(self):
         """
-        Get the vector of densities.
+        Get the vector of tumor densities.
 
         Returns:
             numpy.ndarray: Vector of densities.
         """
         return self.n
+    
+    def T(self):
+        """
+        Get the vector of T-cells densities.
+
+        Returns:
+            numpy.ndarray: Vector of densities.
+        """
+        return self.T
+
+    def w(self):
+        """
+        Get the vector of total densities.
+
+        Returns:
+            numpy.ndarray: Vector of densities.
+        """
+        self.w=self.T+self.n
+        return self.w
     
     def cells_size(self):
         """
@@ -154,11 +177,11 @@ class Density_EDP:
         # Probability of proliferation
         Nx = self.Nx
         cells0 = self.cells
-        n0 = self.n
+        w0 = self.w
         n_max = self.n_max
         m = len(cells0)
         l = Nx**2
-        f = np.ones(l) - (1./n_max)*n0
+        f = np.ones(l) - (1./n_max)*w0
         Pp = np.zeros(l)
         # Using f(n) to create probabilities for each cell
         Pp[f>=0] = self.delta_t*self.rn*f[f>=0] 
