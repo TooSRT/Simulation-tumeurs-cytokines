@@ -227,12 +227,12 @@ class Tcells_mvt:
             else:
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left = lambda_val/2*self.psi(self.w[i-1]) 
+                    T_left =0 # lambda_val/2*self.psi(self.w[i-1]) 
                 else:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = (lambda_val / 2) * self.psi(self.w[i+1])
+                    T_right = 1 #(lambda_val / 2) * self.psi(self.w[i+1])
                 else:
                     T_right = 0
                 #Stay
@@ -273,3 +273,8 @@ class Tcells_mvt:
                 #print(movement_vector)
 
         self.pos = self.pos + movement_vector #Update positions
+        print(self.pos)
+        self.T = np.zeros(self.Nx**2) #Initial T-cells density in each case
+        for i in self.pos:
+                self.T[i] += 1
+        #multiplier T par un coefficient pour la densité 

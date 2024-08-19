@@ -28,13 +28,13 @@ def main():
     ####################
 
     nb_tumor = 10
-    Nb_cells_cyt = 10
+    Nb_cells_cyt = 1
     unit = "cm"
     distrib = "gaussian"
     proliferation = True
     tol = 1e-8
-    iter_max = 10
-    iter_print = 1
+    iter_max = 100
+    iter_print = 10
 
     #############################
     # PARAMETERS INITIALIZATION #

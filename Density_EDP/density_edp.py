@@ -10,7 +10,7 @@ Usage:
     from Simulation.density_edp import Density_EDP
 
     # Example usage:
-    density_edp = Density_EDP(nb_cells=100, Nx=grid_side_length, cells0=initial_cells, n0=initial_density, n_max=max_density_value, delta_x=spatial_step_size, delta_t=time_step_size, Dn=diffusion_coefficient, rn=division_rate)
+    density_edp = Density_EDP(nb_cells=100, Nx=grid_side_length, cells0=initial_cells, n0=initial_density, w_max=max_density_value, delta_x=spatial_step_size, delta_t=time_step_size, Dn=diffusion_coefficient, rn=division_rate)
     cellsmouv, cellspro, choice = density_edp.proliferation()
 """
 
@@ -28,7 +28,7 @@ class Density_EDP:
         Nx (int): Size of the grid.
         delta_t (int): Time step size (in hours).
         delta_x (float): Spatial step size.
-        n_max (int): Maximum density value.
+        w_max (int): Maximum density value.
         Dn (float): Diffusion coefficient.
         rn (float): Division rate (in hours).
         cells (numpy.ndarray): Vector of cancer cells.
@@ -36,7 +36,7 @@ class Density_EDP:
         cells_size (numpy.ndarray): List of the number of cells per iteration.
     """
 
-    def __init__(self, Nx, cells0, w0, T0, n0, n_max, delta_x, delta_t, Dn, rn):
+    def __init__(self, Nx, cells0, w0, T0, n0, w_max, delta_x, delta_t, Dn, rn):
         """
         Initialize a Density_EDP object.
 
@@ -47,7 +47,7 @@ class Density_EDP:
             w0 (numpy.ndarray): Initial density vector (T-cells + tumor).
             n0 (numpy.ndarray): Initial density vector (tumor).
             T0 (numpy.ndarray): Initial density vector (T-cells).
-            n_max (int): Maximum density value.
+            w_max (int): Maximum density value.
             delta_x (float): Spatial step size.
             delta_t (int): Time step size (in hours).
             Dn (float): Diffusion coefficient.
@@ -58,7 +58,7 @@ class Density_EDP:
         self.w = w0 
         self.T = T0
         self.n = n0
-        self.n_max = n_max
+        self.w_max = w_max
         self.delta_x = delta_x
         self.delta_t = delta_t
         self.Dn = Dn
@@ -92,14 +92,14 @@ class Density_EDP:
         """
         return self.delta_x
 
-    def n_max(self):
+    def w_max(self):
         """
         Get the maximum density value.
 
         Returns:
             int: Maximum density value.
         """
-        return self.n_max
+        return self.w_max
     
     def Dn(self):
         """
@@ -178,10 +178,10 @@ class Density_EDP:
         Nx = self.Nx
         cells0 = self.cells
         w0 = self.w
-        n_max = self.n_max
+        w_max = self.w_max
         m = len(cells0)
         l = Nx**2
-        f = np.ones(l) - (1./n_max)*w0
+        f = np.ones(l) - (1./w_max)*w0
         Pp = np.zeros(l)
         # Using f(n) to create probabilities for each cell
         Pp[f>=0] = self.delta_t*self.rn*f[f>=0] 
@@ -269,4 +269,4 @@ class Density_EDP:
         # Add daughter cells to the end
         self.cells = np.append(cells0,cellspro)
         # Update the base density vector based on the movements made     
-        self.n = np.bincount(self.cells, minlength=int(Nx**2)) 
+        self.n = np.bincount(self.cells, minlength=int(Nx**2))

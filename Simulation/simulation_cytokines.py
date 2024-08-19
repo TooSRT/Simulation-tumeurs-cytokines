@@ -44,7 +44,7 @@ class Simulation2:
                 T0[i] += 1
 
         w0 = T0 + n0 #Initial density 
-
+        
         self.tcells_mvt_instance = Tcells_mvt(Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells)
         self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, tcells_mvt=self.tcells_mvt_instance)
         self.density_grid = Density_Grid(len(n0), unit)
@@ -131,7 +131,7 @@ class Simulation2:
         Args:
             i (int): Time step.
         """
-        self.density_grid.print(self.density_edp.n, self.density_edp.n_max, self.density_edp.Nx, i * self.density_edp.delta_t, self.density_edp.cells_size[i])
+        self.density_grid.print(self.density_edp.n, self.density_edp.w_max, self.density_edp.Nx, i * self.density_edp.delta_t, self.density_edp.cells_size[i])
 
     def print_cytokine(self, i):
         """
