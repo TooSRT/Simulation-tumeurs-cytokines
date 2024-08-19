@@ -37,7 +37,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp, Rc, P_prod, P_cons, tcells_mvt):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, tcells_mvt):
         """
         Initialize an O2_EDP object.
 
@@ -48,8 +48,8 @@ class cytokine_EDP:
             delta_x (float): Spatial step size.
             D_cytokine (float): Diffusion coefficient for cytokine.
             cyto (numpy.ndarray): Vector of cytokine concentration.
-            R_p (float): Cytokine production.
-            R_c (float): Cytokine consumption.
+            Tau_p (float): Cytokine production.
+            Tau_c (float): Cytokine consumption.
             P_prod (float): Probability of Tcells to be a cytokine producer
             P_cons (float): Probability of Tcells to be a cytokine consumer
             pos (numpy.ndarray): Position's vector of blood vessels.
@@ -62,13 +62,15 @@ class cytokine_EDP:
         self.delta_x = delta_x
         self.delta_t = delta_t
         self.D_cytokine = D_cytokine
-        self.Rp = Rp
-        self.Rc = Rc
+        self.Tau_p = Tau_p
+        self.Tau_c = Tau_c
 
+        #Initialisation of cells and their phenotype
         Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
         
-        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotyspe actif produisant
-        Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant
+        #Density of producer and consumer 
+        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotype actif produisant n_prod
+        Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant n_cons
         
         #(revoir les probas utilisés)
         for j in range(len(pos0)):
@@ -78,8 +80,8 @@ class cytokine_EDP:
                 Pheno_actif_cons[j] = 1
 
         #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
-        self.Rp_vect = Pheno_actif_prod * Rp 
-        self.Rc_vect = Pheno_actif_cons * Rc
+        self.Rp_vect = Pheno_actif_prod * Tau_p 
+        self.Rc_vect = Pheno_actif_cons * Tau_c
 
         self.A = self.init_A()
         self.B, self.supply, A_new = self.init_b(pos0)
@@ -104,7 +106,7 @@ class cytokine_EDP:
         Nx = self.Nx
         delta_t = self.delta_t
         Rp_vect = self.Rp_vect #contient les vecteurs producteurs correspondant
-        Rc_vect = self.Rc_vect
+        Rc_vect = self.Rc_vect #contient les vecteurs consommateurs correspondant
         supply = np.zeros(Nx**2)
         identify_consum_immune_cells = np.zeros((Nx**2,))
         assert (len(pos) < Nx**2 + 1)

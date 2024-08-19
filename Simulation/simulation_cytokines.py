@@ -10,7 +10,7 @@ from O2_EDP.grid_cytokine import cytokine_Grid
 from O2_EDP.tcells_mvt import Tcells_mvt
 
 class Simulation2:
-    def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Rp, Rc, P_prod, P_cons,D_tcells):
+    def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p, Tau_c, P_prod, P_cons,D_tcells):
         """
         Initializes an instance of the Simulation class.
 
@@ -38,7 +38,6 @@ class Simulation2:
         c0 = np.ones(Nx**2)  #Initial cytokine concentration
         n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor density
 
-        #Initialisation of cells and their phenotype
         pos0 = np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
         T0 = np.zeros(Nx**2) #Initial T-cells density in each case
         for i in pos0:
@@ -47,7 +46,7 @@ class Simulation2:
         w0 = T0 + n0 #Initial density 
 
         self.tcells_mvt_instance = Tcells_mvt(Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells)
-        self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Rp, Rc, P_prod, P_cons, tcells_mvt=self.tcells_mvt_instance)
+        self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, tcells_mvt=self.tcells_mvt_instance)
         self.density_grid = Density_Grid(len(n0), unit)
         self.o2_grid = cytokine_Grid(unit)
         self.density_edp = Density_EDP(Nx, cells0, w0, T0, n0, w_max, delta_x, delta_t, Dn, rn)

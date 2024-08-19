@@ -47,7 +47,7 @@ def main():
     if unit == "mm" :
         data = pd.DataFrame(pd.read_csv('parameters/parameters_mm.csv'))
 
-    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Rp, Rc, P_prod, P_cons, w_max, D_tcells = data['Value']
+    Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, w_max, D_tcells = data['Value']
     
     Nx = int(Nx)
     if(not proliferation) :
@@ -58,7 +58,7 @@ def main():
     ##############
 
     #simulation = Simulation(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa)
-    simulation = Simulation2(nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Rp, Rc, P_prod, P_cons, D_tcells)
+    simulation = Simulation2(nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p, Tau_c, P_prod, P_cons, D_tcells)
     simulation.load_simulation(iter_max, iter_print)
     
 '''
