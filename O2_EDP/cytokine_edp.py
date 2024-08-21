@@ -37,7 +37,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, tcells_mvt):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, alpha_c, tcells_mvt):
         """
         Initialize an O2_EDP object.
 
@@ -52,6 +52,7 @@ class cytokine_EDP:
             Tau_c (float): Cytokine consumption.
             P_prod (float): Probability of Tcells to be a cytokine producer
             P_cons (float): Probability of Tcells to be a cytokine consumer
+            alpha_c (float): decay rate for cytokine
             pos (numpy.ndarray): Position's vector of blood vessels.
             tol (float): Tolerance of the conjugate gradient algorithm.
         """
@@ -64,6 +65,7 @@ class cytokine_EDP:
         self.D_cytokine = D_cytokine
         self.Tau_p = Tau_p
         self.Tau_c = Tau_c
+        self.alpha_c = alpha_c
 
         #Initialisation of cells and their phenotype
         Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
@@ -113,19 +115,22 @@ class cytokine_EDP:
         for i, p in enumerate(pos):
             #print(f"Position: {p}, Production: {Rp_vect[i]:.4f}, Consommation: {Rc_vect[i]*self.cyto[self.pos][i]:.4f}")
             supply[p] = delta_t*(Rp_vect[i])
-            if Rc_vect[i]*self.cyto[self.pos][i] > 0:
+            if Rc_vect[i]*self.cyto[self.pos][i] > 0: #cyto[self.pos][i] concentration en cytokine à la position i
                 identify_consum_immune_cells[p] = delta_t*Rc_vect[i]
 
+        #Màj de la matrice A en fonction des cellules consommatrices
         A_new = self.A + diags([identify_consum_immune_cells],[0], shape=(Nx**2,Nx**2),format='csc')
-        B = diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc') 
+        B = diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc')
         return B, supply, A_new 
     
-    #Matrice A similaire à l'oxygène avec les même conditions aux bords
+    #Matrice A presque similaire à l'oxygène
+    #Ajout d'un terme (delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc')
     def init_A(self):
         Nx = self.Nx
         D_cytokine = self.D_cytokine
         delta_t = self.delta_t
         delta_x = self.delta_x
+        alpha_c = self.alpha_c
         
         center_diag = 4*np.ones(Nx**2)
         left_diag = -np.ones(Nx**2 - 1)
@@ -149,7 +154,8 @@ class cytokine_EDP:
         
         diagonals = [-np.ones(Nx**2-Nx), left_diag, center_diag,right_diag,-np.ones(Nx**2 - Nx)]
         offsets = [-Nx,-1,0,1,Nx] 
-        A = diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (D_cytokine*delta_t/delta_x**2)*diags(diagonals,offsets, shape=(Nx**2,Nx**2) , format='csc') 
+        
+        A = diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (D_cytokine*delta_t/delta_x**2)*diags(diagonals,offsets, shape=(Nx**2,Nx**2) , format='csc') 
 
         return A
     
