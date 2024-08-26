@@ -171,6 +171,9 @@ class Tcells_mvt:
         Tcells_memorize = np.zeros(l,dtype=bool) #initialize our vector of Tcells under cytokine influence
         for idx, i in enumerate(self.pos):
 
+#-----------T-cells that have interacted with tumor cells-----------
+            #if 
+
 #-----------T-cells under cytokine influence-----------
             if Rc_vect[idx]>0:
                 Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
@@ -178,7 +181,7 @@ class Tcells_mvt:
             if Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines 
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left = 0
+                    T_left = 1
                 else:
                     T_left = 0
                 #Moove to right
@@ -232,7 +235,7 @@ class Tcells_mvt:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = 0 #(lambda_val / 2) * self.psi(self.w[i+1])
+                    T_right = 1 #(lambda_val / 2) * self.psi(self.w[i+1])
                 else:
                     T_right = 0
                 #Stay
@@ -273,8 +276,10 @@ class Tcells_mvt:
                 #print(movement_vector)
 
         self.pos = self.pos + movement_vector #Update positions
-        #print(self.pos)
+        #print(self.n)
         self.T = np.zeros(self.Nx**2) #Initial T-cells density in each case
         for i in self.pos:
                 self.T[i] += 1
         #multiplier T par un coefficient pour la densité 
+        self.w = self.n + self.T
+        #print(self.n)

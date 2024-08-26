@@ -183,11 +183,12 @@ class Density_EDP:
         l = Nx**2
         f = np.ones(l) - (1./w_max)*w0
         Pp = np.zeros(l)
+        print()
         # Using f(n) to create probabilities for each cell
         Pp[f>=0] = self.delta_t*self.rn*f[f>=0] 
         # Creating probabilities for each cell
         prolif = Pp[cells0] 
-
+        #print(prolif)
         # Random
         V = np.random.uniform(0,1,m)
         choice = V > prolif
@@ -196,6 +197,7 @@ class Density_EDP:
         cellspro = cells0[V <= prolif] 
         cellsmouv = cells0[V > prolif]
         cellspro = cellspro.astype(int)
+
         return cellsmouv, cellspro, choice
 
     def movement(self, cellsmouv, cellspro, m0, choice):
@@ -270,3 +272,5 @@ class Density_EDP:
         self.cells = np.append(cells0,cellspro)
         # Update the base density vector based on the movements made     
         self.n = np.bincount(self.cells, minlength=int(Nx**2))
+        self.w = self.n + self.T
+        #print(self.T)

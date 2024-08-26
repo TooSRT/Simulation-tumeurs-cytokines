@@ -38,7 +38,7 @@ class Simulation2:
         c0 = np.zeros(Nx**2)  #Initial cytokine concentration
         n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor density
 
-        pos0 = [5000] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
+        pos0 = [50] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
         T0 = np.zeros(Nx**2) #Initial T-cells density in each case
         for i in pos0:
                 T0[i] += 1

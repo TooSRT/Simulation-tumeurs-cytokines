@@ -1,7 +1,7 @@
 Parameter,Meaning,Value,Unit
-Nx,Number of cells on one side of the grid, 100,/
-Delta x,Spacing,0.01,cm
-Delta t,Time step,1,h
+Nx,Number of cells on one side of the grid, 10,/
+Delta x,Spacing,0.016,cm
+Delta t,Time step, 15,h
 Dn,Diffusion coefficient of tumor cells,2e-7,cm^2/h
 n_max,Maximal density of one cell of the grid,16,/
 rn,Tumor cell proliferation rate,9.58e-3,h^-1

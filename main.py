@@ -33,7 +33,7 @@ def main():
     distrib = "gaussian"
     proliferation = True
     tol = 1e-8
-    iter_max = 100
+    iter_max = 10
     iter_print = 10
 
     #############################

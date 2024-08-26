@@ -155,7 +155,7 @@ class cytokine_EDP:
         diagonals = [-np.ones(Nx**2-Nx), left_diag, center_diag,right_diag,-np.ones(Nx**2 - Nx)]
         offsets = [-Nx,-1,0,1,Nx] 
         
-        A = diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (D_cytokine*delta_t/delta_x**2)*diags(diagonals,offsets, shape=(Nx**2,Nx**2) , format='csc') 
+        A = (1 + delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc') + (D_cytokine*delta_t/delta_x**2)*diags(diagonals,offsets, shape=(Nx**2,Nx**2) , format='csc') 
 
         return A
     
