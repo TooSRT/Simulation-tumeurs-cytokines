@@ -34,7 +34,7 @@ def main():
     proliferation = True
     tol = 1e-8
     iter_max = 10
-    iter_print = 10
+    iter_print = 1
 
     #############################
     # PARAMETERS INITIALIZATION #

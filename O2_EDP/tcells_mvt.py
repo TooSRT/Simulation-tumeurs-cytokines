@@ -23,9 +23,8 @@ class Tcells_mvt:
         w (numpy.ndarray): Vector of total densities.
         n (numpy.ndarray): Vector of tumors densities.
         T (numpy.ndarray): Vector of T_cells densities.
-        cells_size (numpy.ndarray): List of the number of cells per iteration.
     """
-    def __init__(self, Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells):
+    def __init__(self, Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_actif_prod, Pheno_actif_cons):
         """
         Initialize a Density_EDP object.
 
@@ -39,6 +38,8 @@ class Tcells_mvt:
             n_max (int): Maximum density value.
             delta_x (float): Spatial step size.
             delta_t (int): Time step size (in hours).
+            Pheno_actif_prod (numpy.ndarray): List of cytokines producer (CD8)
+            Pheno_actif_cons (numpy.ndarray): List of cytokines consummer (CD4)
         """
         self.pos = pos0
         self.Nx = Nx
@@ -49,7 +50,10 @@ class Tcells_mvt:
         self.delta_x = delta_x
         self.delta_t = delta_t
         self.D_tcells = D_tcells
-     
+        self.Pheno_actif_prod = Pheno_actif_prod 
+        self.Pheno_actif_cons = Pheno_actif_cons  
+        self.Tcells_memorize = np.zeros(len(self.pos), dtype=bool)
+
     def Nx(self):
         """
         Get the size of the grid.
@@ -132,15 +136,6 @@ class Tcells_mvt:
         self.w=self.T+self.n
         return self.w
     
-    def cells_size(self):
-        """
-        Get the list of the number of cells per iteration.
-
-        Returns:
-            numpy.ndarray: List of the number of cells per iteration.
-        """
-        return self.cells_size
-    
     def psi(self,w):
         """
         Fonction pour moduler les probabilités de mouvement en fonction de la densité cellulaire.
@@ -156,8 +151,63 @@ class Tcells_mvt:
             return (1-w/w_max)
         else:
             return 0
-        
-    def movement(self, Rc_vect):
+    
+    def Pheno_actif_prod(self):
+        """
+        Get the list of active cytokines producer (Tcells CD8)
+
+        Returns:
+            numpy.ndarray: Vector of producers.
+        """
+        return self.Pheno_actif_prod
+    
+    def Pheno_actif_cons(self):
+        """
+        Get the list of active cytokines consummer (Tcells CD4)
+
+        Returns:
+            numpy.ndarray: Vector of consummers.
+        """
+        return self.Pheno_actif_cons
+    
+    def update_pheno(self, Rc_vect):
+        """
+        Updates the active phenotypes of T-cells based on their properties.
+
+        Args:
+            Rc_vect (numpy.darray):
+        """
+        Pheno_actif_cons = self.Pheno_actif_cons
+        Pheno_actif_prod = self.Pheno_actif_prod
+        l = len(self.pos)
+        self.Tcells_memorize=np.copy(Pheno_actif_prod )#memorize Tcells that are influenced by cytokine or interacted with tumor
+        print(self.Tcells_memorize)
+        #self.Tcells_memorize = np.zeros(l,dtype=bool) 
+        for idx, i in enumerate(self.pos):
+#-----------T-cells that have interacted with tumor cells-----------
+            if self.Nx - 1 <= np.abs(i - self.n[i]) <= self.Nx +1:
+                self.Tcells_memorize[idx]=True
+                Pheno_actif_prod[idx] = 1
+                Pheno_actif_cons[idx] = 0
+            elif -1 <= np.abs(i - self.n[i]) <= 1:
+                self.Tcells_memorize[idx]=True
+                Pheno_actif_prod[idx] = 1
+                Pheno_actif_cons[idx] = 0
+            elif -1 -self.Nx <= np.abs(i - self.n[i]) <= 1 - self.Nx:
+                self.Tcells_memorize[idx]=True
+                Pheno_actif_prod[idx] = 1
+                Pheno_actif_cons[idx] = 0
+
+#-----------T-cells under cytokine influence-----------
+            if Rc_vect[idx]>0:
+                self.Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
+                #Update their phenotype
+                Pheno_actif_prod[idx] = 1
+                Pheno_actif_cons[idx] = 0
+
+
+
+    def movement(self):
         """
         Perform cell movement.
 
@@ -168,25 +218,19 @@ class Tcells_mvt:
         lambda_val = self.D_tcells * 4 * self.delta_t /(self.delta_x**2)
         movement_vector = np.zeros(len(self.pos),dtype=int) #initialize our movement vector to update position
         prob_moove = np.zeros((l,3)) #initialize our probability vector for movement
-        Tcells_memorize = np.zeros(l,dtype=bool) #initialize our vector of Tcells under cytokine influence
         for idx, i in enumerate(self.pos):
 
-#-----------T-cells that have interacted with tumor cells-----------
-            #if 
+#-----------T-cells under cytokine influence or have interacted with tumors-----------
 
-#-----------T-cells under cytokine influence-----------
-            if Rc_vect[idx]>0:
-                Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
-
-            if Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines 
+            if self.Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines or interacted with tumors
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left = 1
+                    T_left = 0
                 else:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = 0
+                    T_right = 1
                 else:
                     T_right = 0
                 #Stay
@@ -230,12 +274,12 @@ class Tcells_mvt:
             else:
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left =0 # lambda_val/2*self.psi(self.w[i-1]) 
+                    T_left =1 # lambda_val/2*self.psi(self.w[i-1]) 
                 else:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = 1 #(lambda_val / 2) * self.psi(self.w[i+1])
+                    T_right = 0 #(lambda_val / 2) * self.psi(self.w[i+1])
                 else:
                     T_right = 0
                 #Stay

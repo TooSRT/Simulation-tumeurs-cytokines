@@ -67,35 +67,25 @@ class cytokine_EDP:
         self.Tau_c = Tau_c
         self.alpha_c = alpha_c
 
-        #Initialisation of cells and their phenotype
-        Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
-        
-        #Density of producer and consumer 
-        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotype actif produisant n_prod
-        Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant n_cons
-        
-        #(revoir les probas utilisés)
-        for j in range(len(pos0)):
-            if Vect_unif[j] <= P_prod:  #Déterminer aléatoirement les producteurs
-                Pheno_actif_prod[j] = 1
-            if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les consommateurs
-                Pheno_actif_cons[j] = 1
-
-        #Si la cytokine est productrice ou consomatrice (donc Pheno_actif_prod[i]=1) on la multiplie par un facteur de production ou consommation
-        self.Rp_vect = Pheno_actif_prod * Tau_p 
-        self.Rc_vect = Pheno_actif_cons * Tau_c
-
+        self.tcells_mvt = tcells_mvt
         self.A = self.init_A()
         self.B, self.supply, A_new = self.init_b(pos0)
-        self.tcells_mvt = tcells_mvt
+
         # Attributs utiles pour la grille 
         Lx = 0.1
         x,dx = np.linspace(delta_x,Lx-delta_x,Nx,retstep=True) #grid in x and step in x
         y,dx = np.linspace(delta_x,Lx-delta_x,Nx,retstep=True) #grid in y and step in x
         # in data grid form
         self.X, self.Y = np.meshgrid(x, y)
-    
-    def init_b(self,pos): 
+
+    def update_Rp_Rc(self):
+        """
+        Updates the cytokine production and consumption vectors based on the current phenotype vectors.
+        """
+        self.Rp_vect = self.tcells_mvt.Pheno_actif_prod * self.Tau_p
+        self.Rc_vect = self.tcells_mvt.Pheno_actif_cons * self.Tau_c 
+
+    def init_b(self, pos): 
         """
         Initialize the matrix B and the vector supply.
 
@@ -107,21 +97,22 @@ class cytokine_EDP:
         """
         Nx = self.Nx
         delta_t = self.delta_t
-        Rp_vect = self.Rp_vect #contient les vecteurs producteurs correspondant
-        Rc_vect = self.Rc_vect #contient les vecteurs consommateurs correspondant
+        #Update Rp_vect and rc_vect
+        self.update_Rp_Rc()
         supply = np.zeros(Nx**2)
         identify_consum_immune_cells = np.zeros((Nx**2,))
+
         assert (len(pos) < Nx**2 + 1)
         for i, p in enumerate(pos):
             #print(f"Position: {p}, Production: {Rp_vect[i]:.4f}, Consommation: {Rc_vect[i]*self.cyto[self.pos][i]:.4f}")
-            supply[p] = delta_t*(Rp_vect[i])
-            if Rc_vect[i]*self.cyto[self.pos][i] > 0: #cyto[self.pos][i] concentration en cytokine à la position i
-                identify_consum_immune_cells[p] = delta_t*Rc_vect[i]
+            supply[p] = delta_t*(self.Rp_vect[i])
+            if self.Rc_vect[i]*self.cyto[self.pos][i] > 0: #cyto[self.pos][i] concentration en cytokine à la position i
+                identify_consum_immune_cells[p] = delta_t*self.Rc_vect[i]
 
         #Màj de la matrice A en fonction des cellules consommatrices
         A_new = self.A + diags([identify_consum_immune_cells],[0], shape=(Nx**2,Nx**2),format='csc')
         B = diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc')
-        return B, supply, A_new 
+        return B, supply, A_new
     
     #Matrice A presque similaire à l'oxygène
     #Ajout d'un terme (delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc')
@@ -169,7 +160,7 @@ class cytokine_EDP:
         B, supply, A_new = self.init_b(self.pos) #mettre à jour le vecteur b à chaque itération 
         cyto = self.cyto
         b = cyto + supply
-        return b, A_new
+        return b, A_new  
     
     def cytokine_diffusion(self):
         b, A_new = self.iter_b()
@@ -178,6 +169,9 @@ class cytokine_EDP:
             print("Conjugate gradient did not converge")
         #print("Min cyto = " +str(min(self.cyto)))
         
-        self.tcells_mvt.movement(self.Rc_vect) #màj des positions à chaque itération
+        #Update Tcells phenotypes and positions based on cytokine influence
+        self.tcells_mvt.update_pheno(self.Rc_vect)
+        self.tcells_mvt.movement()
+        print(self.pos)
         self.pos = self.tcells_mvt.pos
-
+        
