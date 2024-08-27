@@ -1,6 +1,6 @@
 Parameter,Meaning,Value,Unit
-Nx,Number of cells on one side of the grid, 100,/
-Delta x,Spacing,0.016,cm
+Nx,Number of cells on one side of the grid, 10,/
+Delta x,Spacing,0.01,cm
 Delta t,Time step, 1,h
 Dn,Diffusion coefficient of tumor cells,2e-7,cm^2/h
 n_max,Maximal density of one cell of the grid,16,/
@@ -11,8 +11,8 @@ kappa,O2 permeability coefficient in blood,1e-5, permeability_unit
 D_cytokine, Cytokines diffusion, 3600e-6,cm^2/h
 Tau_p, Cytokine production rate, 100, /h
 Tau_c, Cytokine consumption rate, 10, /h
-P_prod, production probability of cytokines for a immune cell, 0.5, /
-P_cons, consumption probability of cytokines for a immune cell, 0.49, /
+P_prod, production probability of cytokines for a immune cell, 0, /
+P_cons, consumption probability of cytokines for a immune cell, 1, /
 w_max, Maximal density of one cell of the grid, 16, /
 D_tcells, T cells diffusion, 0.04166667e-3, cm^2/h 
 alpha_c, Cytokine decay, 0.083333, /h

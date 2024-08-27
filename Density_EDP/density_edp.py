@@ -273,4 +273,12 @@ class Density_EDP:
         # Update the base density vector based on the movements made     
         self.n = np.bincount(self.cells, minlength=int(Nx**2))
         self.w = self.n + self.T
-        #print(self.T)
+
+    def update_density_tcells(self, new_density):
+        """
+        Update tumors density in tcells_mvt.
+
+        Args:
+            new_density_tcells (numpy.ndarray): List of the new density for Tcells.
+        """
+        self.T = np.array(new_density) 

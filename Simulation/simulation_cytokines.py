@@ -38,7 +38,7 @@ class Simulation2:
         c0 = np.zeros(Nx**2)  #Initial cytokine concentration
         n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor density
 
-        pos0 = [5000, 5015] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
+        pos0 = [50] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
         T0 = np.zeros(Nx**2) #Initial T-cells density in each case
         for i in pos0:
                 T0[i] += 1
@@ -60,7 +60,7 @@ class Simulation2:
                 Pheno_actif_cons[j] = 1
 
         self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, alpha_c,Pheno_actif_prod, Pheno_actif_cons)
-        self.tcells_mvt_instance = Tcells_mvt(Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_actif_prod, Pheno_actif_cons, self.cytokine_edp)
+        self.tcells_mvt = Tcells_mvt(Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_actif_prod, Pheno_actif_cons, self.cytokine_edp)
         self.density_grid = Density_Grid(len(n0), unit)
         self.o2_grid = cytokine_Grid(unit)
         self.density_edp = Density_EDP(Nx, cells0, w0, T0, n0, w_max, delta_x, delta_t, Dn, rn)
@@ -168,14 +168,19 @@ class Simulation2:
         """
         Performs a single time step of simulation.
         """
-        self.cytokine_edp.cytokine_diffusion()
-        self.tcells_mvt_instance.update_pheno() #Update Tcells phenotypes and positions based on cytokine influence
-        self.tcells_mvt_instance.movement()
-        self.cytokine_edp.update_positions(self.tcells_mvt_instance.pos)
+        #Tcells and cytokines
+        self.cytokine_edp.cytokine_diffusion() #Perform cytokine diffusion by CD8
+        self.tcells_mvt.update_pheno() #Update Tcells phenotypes and positions based on cytokine influence
+        self.tcells_mvt.movement() #Perform T-cells movement
+        self.cytokine_edp.update_positions(self.tcells_mvt.pos) #Update position of Tcells in cytokine_edp
+        self.density_edp.update_density_tcells(self.tcells_mvt.T) #Update tumors density in tcells_mvt based on proliferation of tumor
+        #Tumor
         cellsmouv, cellspro, choice = self.density_edp.proliferation()
         m0 = 0 #len(cellsmouv) si on veut que les cellules bougent
         self.density_edp.movement(cellsmouv, cellspro, m0, choice)
         self.density_edp.cells_size = np.append(self.density_edp.cells_size, len(self.density_edp.cells))
+        self.tcells_mvt.update_density_tumors(self.density_edp.n) #Update tumors density in tcells_mvt based on proliferation of tumor
+
 
     def load_simulation(self, iter_max, iter_print):
         """

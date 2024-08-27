@@ -166,10 +166,10 @@ class cytokine_EDP:
     
     def update_positions(self, new_positions):
         """
-        Update cytokines positions in Cytokine_EDP.
+        Update Tcells positions in Cytokine_EDP.
 
         Args:
-            new_positions (numpy.ndarray): Tableau des nouvelles positions.
+            new_positions (numpy.ndarray): List of the new positions for Tcells.
         """
         self.pos = np.array(new_positions)
 
