@@ -24,7 +24,7 @@ class Tcells_mvt:
         n (numpy.ndarray): Vector of tumors densities.
         T (numpy.ndarray): Vector of T_cells densities.
     """
-    def __init__(self, Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_actif_prod, Pheno_actif_cons):
+    def __init__(self, Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_actif_prod, Pheno_actif_cons, cytokine_edp_instance):
         """
         Initialize a Density_EDP object.
 
@@ -53,6 +53,10 @@ class Tcells_mvt:
         self.Pheno_actif_prod = Pheno_actif_prod 
         self.Pheno_actif_cons = Pheno_actif_cons  
         self.Tcells_memorize = np.zeros(len(self.pos), dtype=bool)
+
+        self.cytokine_edp = cytokine_edp_instance
+        self.Rc_vect = self.cytokine_edp.Rc_vect
+        self.cyto = self.cytokine_edp.cyto
 
     def Nx(self):
         """
@@ -170,42 +174,41 @@ class Tcells_mvt:
         """
         return self.Pheno_actif_cons
     
-    def update_pheno(self, Rc_vect):
+    def update_pheno(self):
         """
         Updates the active phenotypes of T-cells based on their properties.
 
         Args:
-            Rc_vect (numpy.darray):
+            Rc_vect (numpy.darray): List of consummer
         """
-        Pheno_actif_cons = self.Pheno_actif_cons
         Pheno_actif_prod = self.Pheno_actif_prod
-        l = len(self.pos)
-        self.Tcells_memorize=np.copy(Pheno_actif_prod )#memorize Tcells that are influenced by cytokine or interacted with tumor
-        print(self.Tcells_memorize)
-        #self.Tcells_memorize = np.zeros(l,dtype=bool) 
+        Pheno_actif_cons = self.Pheno_actif_cons
+        self.Tcells_memorize=np.copy(Pheno_actif_prod)#memorize Tcells that are influenced by cytokine or interacted with tumor
         for idx, i in enumerate(self.pos):
+
 #-----------T-cells that have interacted with tumor cells-----------
-            if self.Nx - 1 <= np.abs(i - self.n[i]) <= self.Nx +1:
+            if self.Nx - 1 <= np.abs(i - self.n[i]) <= self.Nx +1: #Check if they are above the tumor cell
+                self.Tcells_memorize[idx]=True #save T-cells that have interacted with tumors cells
+                Pheno_actif_prod[idx] = 1  #Update their phenotype
+                Pheno_actif_cons[idx] = 0
+            elif -1 <= np.abs(i - self.n[i]) <= 1: #Check if they are on the side of the tumor cell
                 self.Tcells_memorize[idx]=True
                 Pheno_actif_prod[idx] = 1
                 Pheno_actif_cons[idx] = 0
-            elif -1 <= np.abs(i - self.n[i]) <= 1:
-                self.Tcells_memorize[idx]=True
-                Pheno_actif_prod[idx] = 1
-                Pheno_actif_cons[idx] = 0
-            elif -1 -self.Nx <= np.abs(i - self.n[i]) <= 1 - self.Nx:
+            elif -1 -self.Nx <= np.abs(i - self.n[i]) <= 1 - self.Nx: #check if they are under the tumor cell
                 self.Tcells_memorize[idx]=True
                 Pheno_actif_prod[idx] = 1
                 Pheno_actif_cons[idx] = 0
 
 #-----------T-cells under cytokine influence-----------
-            if Rc_vect[idx]>0:
+            print('check conso in tcells',self.cytokine_edp.Rc_vect[idx]*self.cytokine_edp.cyto[self.pos][idx])
+            print('check cyto in position', self.cytokine_edp.cyto[self.pos][idx])
+            print("Check Rc_vect",self.cytokine_edp.Rc_vect[idx])
+            if self.cytokine_edp.Rc_vect[idx]*self.cytokine_edp.cyto[self.pos][idx] > 2: #Check concentration consumption of consumer
                 self.Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
-                #Update their phenotype
                 Pheno_actif_prod[idx] = 1
                 Pheno_actif_cons[idx] = 0
-
-
+            print("Cells under influence",self.Tcells_memorize)
 
     def movement(self):
         """
@@ -274,7 +277,7 @@ class Tcells_mvt:
             else:
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left =1 # lambda_val/2*self.psi(self.w[i-1]) 
+                    T_left = 0 # lambda_val/2*self.psi(self.w[i-1]) 
                 else:
                     T_left = 0
                 #Moove to right
@@ -320,10 +323,9 @@ class Tcells_mvt:
                 #print(movement_vector)
 
         self.pos = self.pos + movement_vector #Update positions
-        #print(self.n)
+        print(self.pos)
         self.T = np.zeros(self.Nx**2) #Initial T-cells density in each case
         for i in self.pos:
                 self.T[i] += 1
         #multiplier T par un coefficient pour la densité 
         self.w = self.n + self.T
-        #print(self.n)

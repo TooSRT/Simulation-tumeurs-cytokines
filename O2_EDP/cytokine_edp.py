@@ -37,7 +37,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, alpha_c, tcells_mvt):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, alpha_c, Pheno_actif_prod, Pheno_actif_cons):
         """
         Initialize an O2_EDP object.
 
@@ -66,8 +66,9 @@ class cytokine_EDP:
         self.Tau_p = Tau_p
         self.Tau_c = Tau_c
         self.alpha_c = alpha_c
+        self.Pheno_actif_prod = Pheno_actif_prod
+        self.Pheno_actif_cons = Pheno_actif_cons
 
-        self.tcells_mvt = tcells_mvt
         self.A = self.init_A()
         self.B, self.supply, A_new = self.init_b(pos0)
 
@@ -77,13 +78,6 @@ class cytokine_EDP:
         y,dx = np.linspace(delta_x,Lx-delta_x,Nx,retstep=True) #grid in y and step in x
         # in data grid form
         self.X, self.Y = np.meshgrid(x, y)
-
-    def update_Rp_Rc(self):
-        """
-        Updates the cytokine production and consumption vectors based on the current phenotype vectors.
-        """
-        self.Rp_vect = self.tcells_mvt.Pheno_actif_prod * self.Tau_p
-        self.Rc_vect = self.tcells_mvt.Pheno_actif_cons * self.Tau_c 
 
     def init_b(self, pos): 
         """
@@ -98,7 +92,8 @@ class cytokine_EDP:
         Nx = self.Nx
         delta_t = self.delta_t
         #Update Rp_vect and rc_vect
-        self.update_Rp_Rc()
+        self.Rp_vect = self.Pheno_actif_prod * self.Tau_p
+        self.Rc_vect = self.Pheno_actif_cons * self.Tau_c
         supply = np.zeros(Nx**2)
         identify_consum_immune_cells = np.zeros((Nx**2,))
 
@@ -113,7 +108,7 @@ class cytokine_EDP:
         A_new = self.A + diags([identify_consum_immune_cells],[0], shape=(Nx**2,Nx**2),format='csc')
         B = diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc')
         return B, supply, A_new
-    
+   
     #Matrice A presque similaire à l'oxygène
     #Ajout d'un terme (delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc')
     def init_A(self):
@@ -168,10 +163,15 @@ class cytokine_EDP:
         if info != 0:
             print("Conjugate gradient did not converge")
         #print("Min cyto = " +str(min(self.cyto)))
+    
+    def update_positions(self, new_positions):
+        """
+        Update cytokines positions in Cytokine_EDP.
+
+        Args:
+            new_positions (numpy.ndarray): Tableau des nouvelles positions.
+        """
+        self.pos = np.array(new_positions)
+
         
-        #Update Tcells phenotypes and positions based on cytokine influence
-        self.tcells_mvt.update_pheno(self.Rc_vect)
-        self.tcells_mvt.movement()
-        print(self.pos)
-        self.pos = self.tcells_mvt.pos
         
