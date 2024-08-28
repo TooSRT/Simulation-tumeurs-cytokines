@@ -37,7 +37,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, alpha_c, Pheno_actif_prod, Pheno_actif_cons):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, P_prod, P_cons, alpha_c, Pheno_CD4, Pheno_CD8, Rp_vect_0, Rc_vect_0):
         """
         Initialize an O2_EDP object.
 
@@ -48,11 +48,16 @@ class cytokine_EDP:
             delta_x (float): Spatial step size.
             D_cytokine (float): Diffusion coefficient for cytokine.
             cyto (numpy.ndarray): Vector of cytokine concentration.
-            Tau_p (float): Cytokine production.
-            Tau_c (float): Cytokine consumption.
+            Tau_p_CD4 (float): Cytokine production by CD4.
+            Tau_c_CD4 (float): Cytokine consumption by CD4.
+            Tau_c_CD8 (float): Cytokine consumption by CD8.
             P_prod (float): Probability of Tcells to be a cytokine producer
             P_cons (float): Probability of Tcells to be a cytokine consumer
             alpha_c (float): decay rate for cytokine
+            Pheno_CD4 (list): List of CD4 Tcells
+            Pheno_CD8 (list): List of CD8 Tcells
+            Rp_vect_0 (list): Production list
+            Rc_vect_0 (list): Consumption list
             pos (numpy.ndarray): Position's vector of blood vessels.
             tol (float): Tolerance of the conjugate gradient algorithm.
         """
@@ -63,12 +68,15 @@ class cytokine_EDP:
         self.delta_x = delta_x
         self.delta_t = delta_t
         self.D_cytokine = D_cytokine
-        self.Tau_p = Tau_p
-        self.Tau_c = Tau_c
+        self.Tau_p_CD4 = Tau_p_CD4
+        self.Tau_c_CD4 = Tau_c_CD4
+        self.Tau_c_CD8 = Tau_c_CD8
         self.alpha_c = alpha_c
-        self.Pheno_actif_prod = Pheno_actif_prod
-        self.Pheno_actif_cons = Pheno_actif_cons
+        self.Pheno_CD4 = Pheno_CD4
+        self.Pheno_CD8 = Pheno_CD8
 
+        self.Rp_vect = Rp_vect_0
+        self.Rc_vect = Rc_vect_0
         self.A = self.init_A()
         self.B, self.supply, A_new = self.init_b(pos0)
 
@@ -92,8 +100,8 @@ class cytokine_EDP:
         Nx = self.Nx
         delta_t = self.delta_t
         #Update Rp_vect and rc_vect
-        self.Rp_vect = self.Pheno_actif_prod * self.Tau_p
-        self.Rc_vect = self.Pheno_actif_cons * self.Tau_c
+        self.Rp_vect = self.Active_CD4 * self.Tau_p_CD4 #Only CD4 produce
+        self.Rc_vect = self.Pheno_CD4 * self.Tau_c_CD4 + self.Pheno_CD8 * self.Tau_c_CD8 #Both CD4 and CD8 consume and it does not depend from their activities
         supply = np.zeros(Nx**2)
         identify_consum_immune_cells = np.zeros((Nx**2,))
 

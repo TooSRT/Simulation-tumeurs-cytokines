@@ -10,7 +10,7 @@ from O2_EDP.grid_cytokine import cytokine_Grid
 from O2_EDP.tcells_mvt import Tcells_mvt
 
 class Simulation2:
-    def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p, Tau_c, P_prod, P_cons, D_tcells, alpha_c):
+    def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, P_prod, P_cons, D_tcells, alpha_c):
         """
         Initializes an instance of the Simulation class.
 
@@ -39,28 +39,42 @@ class Simulation2:
         n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor density
 
         pos0 = [50] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #self.init_pos0() permet de modifier la position et d'ajouter des sources
-        T0 = np.zeros(Nx**2) #Initial T-cells density in each case
-        for i in pos0:
-                T0[i] += 1
-
-        w0 = T0 + n0 #Initial density 
 
         #Initialisation of cells and their phenotype
         Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
         
         #Density of producer and consumer 
-        Pheno_actif_prod = np.zeros(len(pos0))  #Liste phenotype actif produisant n_prod
-        Pheno_actif_cons = np.zeros(len(pos0))  #Liste phenotype actif consommant n_cons
+        Pheno_CD4 = np.zeros(len(pos0))  #Liste phenotype actif produisant n_prod
+        Pheno_CD8 = np.zeros(len(pos0))  #Liste phenotype actif consommant n_cons
         
         #(revoir les probas utilisés)
         for j in range(len(pos0)):
-            if Vect_unif[j] <= P_prod:  #Déterminer aléatoirement les producteurs
-                Pheno_actif_prod[j] = 1
-            if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les consommateurs
-                Pheno_actif_cons[j] = 1
+            if Vect_unif[j] <= P_prod:  #Déterminer aléatoirement les CD4
+                Pheno_CD4[j] = 1
+            if Vect_unif[j] >= 1 - P_cons:  #Déterminer aléatoirement les CD8
+                Pheno_CD8[j] = 1
 
-        self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p, Tau_c, P_prod, P_cons, alpha_c,Pheno_actif_prod, Pheno_actif_cons)
-        self.tcells_mvt = Tcells_mvt(Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_actif_prod, Pheno_actif_cons, self.cytokine_edp)
+        #Create a grid of size Nx*Nx and put the density of each Tcells type in each cell
+        T_CD4 = np.zeros(Nx**2)
+        for idx, i in enumerate(Pheno_CD4):
+            if i != 0:  #Check if we have CD4 in the cell
+                T_CD4[pos0[idx]] += 1 #Put the quantity of CD4 in the grid Nx*Nx
+
+        T_CD8 = np.zeros(Nx**2)
+        for idx, i in enumerate(Pheno_CD8):
+            if i !=0 :  #Check if we have CD8 in the cell
+                T_CD8[pos0[idx]] += 1  #Put the quantity of CD8 in the grid Nx*Nx
+                
+        T0 = T_CD8 + T_CD4 #Initial T-cells density in each cell of the gris (CD4 +CD8)
+
+        w0 = T0 + n0 #Initial total density (Tcells + tumors cells)
+
+        #Initial production and consumption (Every CD4 are inactive)
+        Rp_vect = np.zeros(len(Pheno_CD4)) * Tau_p_CD4
+        Rc_vect = Pheno_CD4 * Tau_c_CD4 + Pheno_CD8 * Tau_c_CD8
+
+        self.cytokine_edp = cytokine_EDP(Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, P_prod, P_cons, alpha_c,Pheno_CD4, Pheno_CD8, Rc_vect, Rp_vect)
+        self.tcells_mvt = Tcells_mvt(Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_CD4, Pheno_CD8, self.cytokine_edp)
         self.density_grid = Density_Grid(len(n0), unit)
         self.o2_grid = cytokine_Grid(unit)
         self.density_edp = Density_EDP(Nx, cells0, w0, T0, n0, w_max, delta_x, delta_t, Dn, rn)
@@ -174,6 +188,7 @@ class Simulation2:
         self.tcells_mvt.movement() #Perform T-cells movement
         self.cytokine_edp.update_positions(self.tcells_mvt.pos) #Update position of Tcells in cytokine_edp
         self.density_edp.update_density_tcells(self.tcells_mvt.T) #Update tumors density in tcells_mvt based on proliferation of tumor
+        
         #Tumor
         cellsmouv, cellspro, choice = self.density_edp.proliferation()
         m0 = 0 #len(cellsmouv) si on veut que les cellules bougent
