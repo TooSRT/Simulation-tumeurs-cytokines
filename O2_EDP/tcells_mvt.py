@@ -24,7 +24,7 @@ class Tcells_mvt:
         n (numpy.ndarray): Vector of tumors densities.
         T (numpy.ndarray): Vector of T_cells densities.
     """
-    def __init__(self, Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_CD4, Pheno_CD8, cytokine_edp_instance):
+    def __init__(self, Nx, pos0, w0, T0, n0, w_max, delta_x, delta_t, D_tcells, Pheno_CD4, Pheno_CD8, T_CD4, T_CD8, cytokine_edp_instance):
         """
         Initialize a Density_EDP object.
 
@@ -51,7 +51,9 @@ class Tcells_mvt:
         self.delta_t = delta_t
         self.D_tcells = D_tcells
         self.Pheno_CD4 = Pheno_CD4
-        self.Pheno_CD8 = Pheno_CD8  
+        self.Pheno_CD8 = Pheno_CD8
+        self.T_CD4 = T_CD4
+        self.T_CD8 = T_CD8
         self.cytokine_edp = cytokine_edp_instance
 
     def Nx(self):
@@ -157,7 +159,7 @@ class Tcells_mvt:
         Get the list of Tcells CD4
 
         Returns:
-            numpy.ndarray: Vector of producers.
+            numpy.ndarray: Position vector of CD4.
         """
         return self.Pheno_actif_prod
     
@@ -166,9 +168,27 @@ class Tcells_mvt:
         Get the list of Tcells CD8
 
         Returns:
-            numpy.ndarray: Vector of consummers.
+            numpy.ndarray: Position vector of CD8.
         """
         return self.Pheno_actif_cons
+    
+    def T_CD4(self):
+        """
+        Get the density of CD4 in the grid
+
+        Returns:
+            numpy.darray: Vector of CD4
+        """
+        return self.T_CD4
+    
+    def T_CD8(self):
+        """
+        Get the density of CD8 in the grid
+
+        Returns:
+            numpy.darray: Vector of CD8
+        """
+        return self.T_CD8
 
     def movement(self):
         """
@@ -180,10 +200,10 @@ class Tcells_mvt:
         l=len(self.pos)
         movement_vector = np.zeros(len(self.pos),dtype=int) #initialize our movement vector to update position
         prob_moove = np.zeros((l,3)) #initialize our probability vector for movement
+
         for idx, i in enumerate(self.pos):
-
+            print(self.cytokine_edp.Tcells_memorize)
 #-----------T-cells under cytokine influence or have interacted with tumors-----------
-
             if self.cytokine_edp.Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines or interacted with tumors
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
@@ -192,7 +212,7 @@ class Tcells_mvt:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = 0
+                    T_right = 1
                 else:
                     T_right = 0
                 #Stay
@@ -232,11 +252,10 @@ class Tcells_mvt:
                 #print(movement_vector)
 
 #-----------T-cells inactive or loose cytokine influence-----------
-
             else:
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left = 0 
+                    T_left = 0
                 else:
                     T_left = 0
                 #Moove to right
@@ -284,17 +303,17 @@ class Tcells_mvt:
         self.pos = self.pos + movement_vector #Update positions
 
         #Update pos in the grid of CD4 and CD8
-        T_CD4 = np.zeros(self.Nx**2)
+        self.T_CD4 = np.zeros(self.Nx**2)
         for idx, i in enumerate(self.Pheno_CD4):
             if i != 0:  #Check if we have CD4 in the cell
-                T_CD4[self.pos[idx]] += 1 #Put the quantity of CD4 in the grid Nx*Nx
+                self.T_CD4[self.pos[idx]] += 1 #Put the quantity of CD4 in the grid Nx*Nx
 
-        T_CD8 = np.zeros(self.Nx**2)
+        self.T_CD8 = np.zeros(self.Nx**2)
         for idx, i in enumerate(self.Pheno_CD8):
             if i !=0 :  #Check if we have CD8 in the cell
-                T_CD8[self.pos[idx]] += 1  #Put the quantity of CD8 in the grid Nx*Nx
+                self.T_CD8[self.pos[idx]] += 1  #Put the quantity of CD8 in the grid Nx*Nx
                 
-        self.T = T_CD8 + T_CD4 #Initial T-cells density in each cell of the gris (CD4 +CD8)
+        self.T = self.T_CD8 + self.T_CD4 #Initial T-cells density in each cell of the gris (CD4 +CD8)
 
         #multiplier T par un coefficient pour la densité ?
         self.w = self.n + self.T #mise à jour de nos densités

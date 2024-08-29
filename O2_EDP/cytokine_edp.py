@@ -37,7 +37,7 @@ class cytokine_EDP:
         tol (float): Tolerance of the conjugate gradient algorithm.
     """
 
-    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, alpha_c, Pheno_CD4, Pheno_CD8, Active_CD4, Active_CD8, Inactive_CD4, Inactive_CD8, n0):
+    def __init__(self, Nx, c0, pos0, tol, delta_x, delta_t, D_cytokine, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, alpha_c, Pheno_CD4, Pheno_CD8, Active_CD4, Active_CD8, Inactive_CD4, Inactive_CD8, n0, T_CD4, T_CD8):
         """
         Initialize an O2_EDP object.
 
@@ -61,6 +61,8 @@ class cytokine_EDP:
             Inactive_CD4 (list): List of inactive CD4 Tcells
             Inactive_CD8 (list): List of inactive CD8 Tcells
             n0 (numpy.ndarray): Initial density vector (tumor).
+            T_CD4 (numpy.ndarray): List of initial density for CD4.
+            T_CD8 (numpy.ndarray): List of initial density for CD8.
             pos (numpy.ndarray): Position's vector of blood vessels.
             tol (float): Tolerance of the conjugate gradient algorithm.
         """
@@ -82,6 +84,8 @@ class cytokine_EDP:
         self.Active_CD8 = Active_CD8
         self.Inactive_CD4 = Inactive_CD4
         self.Inactive_CD8 = Inactive_CD8
+        self.T_CD4 = T_CD4
+        self.T_CD8 = T_CD8
 
         self.A = self.init_A()
         self.B, self.supply, A_new = self.init_b(pos0)
@@ -192,72 +196,89 @@ class cytokine_EDP:
         """
         Updates the active phenotypes of T-cells based on their properties.
         """
+        #List of activity of each tcells
         Active_CD4 = self.Active_CD4 
         Active_CD8 = self.Active_CD8 
         Inactive_CD4 = self.Inactive_CD4
         Inactive_CD8 = self.Inactive_CD8
-        #List of activity of each tcells
         """
         Inactive_CD4 = [1,1,1,1]
-        Active_CD4   = [0,0,0,0,]
+        Active_CD4   = [0,0,0,0]
 
         Example:
         After one step, one CD4 become active:
 
         Inactive_CD4 = [1,0,1,1]
-        Active_CD4   = [0,1,0,0,]
+        Active_CD4   = [0,1,0,0]
 
-        Use different coefficient of consumption to keep the activity of and active Tcell and an inactive one
+        Now CD4 can produce cytokine in init_b()
         """
-        self.Tcells_memorize = np.zeros(len(self.pos), dtype=bool) #Memorize Tcells that are influenced by cytokine or interacted with tumor
-
         n_pos = [i for i, qte in enumerate(self.n) if qte != 0] #get positions of tumors cells
+        self.Tcells_memorize = np.zeros(len(self.pos), dtype=bool)  #Memorize Tcells that are influenced by cytokine or interacted with tumor
+
         for idx, i in enumerate(self.pos):
             diff = np.array([i] * len(n_pos)) #create list of size n_pos with the position of one T cell
+            diff_abs = n_pos - diff #space between a Tcell and each tumor cell
+            check_side = np.where((-1 <= diff_abs) & (diff_abs <= 1))[0] #Check if the Tcell is on the side of a cell or in the tumor cell
+            check_above = np.where((self.Nx - 1 <= diff_abs) & (diff_abs <= self.Nx + 1))[0] #Check if the Tcell is above a cell
+            check_below = np.where((-self.Nx - 1 <= diff_abs) & (diff_abs <= 1 - self.Nx ))[0] #Check if the Tcell is belowthe a cell
+
+#-----------T-cells loose cytokine influence or don't have enough cytokines to become active-----------
+            #Définir le taux seuil à partir du quel une cellule T doit se maintenir pour rester sous l'influence des cytokines
+            if self.Rc_vect[idx]*self.cyto[self.pos][idx] <= 1: #Check concentration consumption of consumer (CD4+CD8)
+                print("perte influence cytokine")
+                self.Tcells_memorize[idx]=False #T-cells is not under cytokine influence anymore
+                if self.T_CD4[i] != 0: 
+                    Inactive_CD4[idx] = 1 
+                    Active_CD4[idx] = 0
+                if self.T_CD8[i] != 0:  
+                    Inactive_CD8[idx] = 1
+                    Active_CD8[idx] = 0
 
 #-----------T-cells that have interacted with tumor cells-----------
-            #(n_pos - diff) space between each Tcells and tumor cells
-            if np.any(np.abs(n_pos - diff)) <= 1: #Check if they are on the side of the tumor cell
-                #print('test réussi side')
+            if check_side: #Check if they are on the side of the tumor cell (i.e check_side not empty)
+                print('test réussi side')
                 self.Tcells_memorize[idx]=True #save T-cells that have interacted with tumors cells
-                Inactive_CD4[idx] = 0 #Tcell is now active
-                Inactive_CD8[idx] = 0
-                Active_CD4[idx] = 1 #Tcell is now active
-                Active_CD8[idx] = 1
-            elif self.Nx - 1 <= np.any(n_pos - diff) <= self.Nx +1: #Check if they are above the tumor cell
-                #print('test réussi above')
+                if self.T_CD4[i] != 0: #Check if there is a CD4 in this position
+                    Inactive_CD4[idx] = 0 
+                    Active_CD4[idx] = 1 #Tcell is now active
+                if self.T_CD8[i] != 0:  #Check if there is a CD8 in this position
+                    Inactive_CD8[idx] = 0
+                    Active_CD8[idx] = 1
+
+            elif check_above: #Check if they are above the tumor cell (i.e check_above not empty)
+                print('test réussi above')
                 self.Tcells_memorize[idx]=True 
-                Inactive_CD4[idx] = 0 
-                Inactive_CD8[idx] = 0
-                Active_CD4[idx] = 1 
-                Active_CD8[idx] = 1
-            elif -1 - self.Nx <= np.any(n_pos - diff) <= 1 - self.Nx: #Check if they are under the tumor cell
-                #print('test réussi under')
+                if self.T_CD4[i] != 0:
+                    Inactive_CD4[idx] = 0 
+                    Active_CD4[idx] = 1 
+                if self.T_CD8[i] != 0:
+                    Inactive_CD8[idx] = 0
+                    Active_CD8[idx] = 1
+
+            elif check_below: #Check if they are under the tumor cell (i.e check_below not empty)
+                print('test réussi under')
                 self.Tcells_memorize[idx]=True
-                Inactive_CD4[idx] = 0 
-                Inactive_CD8[idx] = 0
-                Active_CD4[idx] = 1 
-                Active_CD8[idx] = 1
+                if self.T_CD4[i] != 0: 
+                    Inactive_CD4[idx] = 0
+                    Active_CD4[idx] = 1
+                if self.T_CD8[i] != 0:
+                    Inactive_CD8[idx] = 0
+                    Active_CD8[idx] = 1
 
 #-----------T-cells under cytokine influence-----------
             #Définir le taux seuil à partir du quel une cellule T a assez consommé de cytokines
             #à cause de la diffusion nous avons toujours une infime concentration en cytokine sur la grille et donc >0 (peu importe l'endroit)
-            if self.Rc_vect[idx]*self.cyto[self.pos][idx] > 2: #Check concentration consumption of consumer
+            if self.Rc_vect[idx]*self.cyto[self.pos][idx] > 1: #Check concentration consumption of consumer
+                print("conssume cytokine")
                 self.Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
-                Inactive_CD4[idx] = 0 
-                Inactive_CD8[idx] = 0 
-                Active_CD4[idx] = 1 
-                Active_CD8[idx] = 1
-
-#-----------T-cells loose cytokine influence or don't have enough cytokines to become active-----------
-            #Définir le taux seuil à partir du quel une cellule T doit se maintenir pour rester sous l'influence des cytokines
-            elif self.Rc_vect[idx]*self.cyto[self.pos][idx] <= 1: #Check concentration consumption of consumer
-                self.Tcells_memorize[idx]=False #T-cells is not under cytokine influence anymore
-                Inactive_CD4[idx] = 1
-                Inactive_CD8[idx] = 1
-                Active_CD4[idx] = 0
-                Active_CD8[idx] = 0
-
+                if self.T_CD4[i] != 0: 
+                    Inactive_CD4[idx] = 0
+                    Active_CD4[idx] = 1
+                if self.T_CD8[i] != 0:
+                    Inactive_CD8[idx] = 0
+                    Active_CD8[idx] = 1
+        
     def update_density_tumors(self, new_density):
         """
         Update tumors density in tcells_mvt and cytokine_edp.
@@ -266,5 +287,18 @@ class cytokine_EDP:
             new_density (numpy.ndarray): List of the new density for tumors.
         """
         self.n = np.array(new_density)
+    
+    def update_density_Tcells(self, new_density_CD4, new_density_CD8):
+        """
+        Update tumors density in cytokine_edp.
+
+        Args:
+            new_density_CD4 (numpy.ndarray): List of the new density for CD4.
+            new_density_CD8 (numpy.ndarray): List of the new density for CD8.
+        """
+        self.T_CD4 = np.array(new_density_CD4)
+        self.T_CD8 = np.array(new_density_CD8)
+
+        
         
         
