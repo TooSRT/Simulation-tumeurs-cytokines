@@ -9,7 +9,7 @@ from O2_EDP.cytokine_edp import cytokine_EDP
 from O2_EDP.grid_cytokine import cytokine_Grid
 from O2_EDP.tcells_mvt import Tcells_mvt
 
-class Simulation2:
+class Simulation:
     def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, P_prod, P_cons, D_tcells, alpha_c):
         """
         Initializes an instance of the Simulation class.
@@ -27,18 +27,19 @@ class Simulation2:
             w_max (float): Max density on each case.
             D_cytokine (float): Diffusion coefficient for cytokines.
             D_tcells (float): Diffusion coefficient for tcells.
-            Rp (float): Cytokine production.
-            Rc (float): cytokine consumption.
+            alpha_c (float): decay rate of Tcells cytokines.
             Nb_cells_cyt (int): Number of cells producing cytokines.
-            P_prod (float): probability production of cytokines for a immune cell
-            P_cons (float): probability production of cytokines for a immune cell
+            P_prod (float): probability production of cytokines for a immune cell.
+            P_cons (float): probability production of cytokines for a immune cell.
+            Tau_p_CD4 (float): Cytokinew production by CD4.
+            Tau_c_CD4 (float): Cytokines consumption by CD4.
+            Tau_c_CD8 (float): Cytokines consumption by CD8.
         """     
-        Nx = int(Nx)
         cells0 = self.init_cells0(Nx**2, nb_tumor, distrib)
         c0 = np.zeros(Nx**2)  #Initial cytokine concentration
         n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor density
 
-        pos0 = [5000,5020] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #modify positions and number of Tcells
+        pos0 = [5000] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #modify positions and number of Tcells
 
         #Initialisation of cells and their phenotype
         Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
@@ -65,13 +66,12 @@ class Simulation2:
             if i !=0 :  #Check if we have CD8 in the cell
                 T_CD8[pos0[idx]] += 1  #Put the quantity of CD8 in the grid Nx*Nx
                 
-        T0 = T_CD8 + T_CD4 #Initial T-cells density in each cell of the gris (CD4 +CD8)
+        T0 = T_CD8 + T_CD4 #Initial T-cells density in each cell of the grid (CD4 +CD8)
 
         w0 = T0 + n0 #Initial total density (Tcells + tumors cells)
 
         #Initial active and inactive CD4 and CD8 
         Active_CD4 = np.zeros(len(Pheno_CD4)) 
-        Active_CD4[0]=1
         Active_CD8 = np.zeros(len(Pheno_CD8))
         Inactive_CD4 = np.ones(len(Pheno_CD4)) 
         Inactive_CD8 = np.ones(len(Pheno_CD8))
@@ -110,26 +110,6 @@ class Simulation2:
         else:
             raise ValueError("Invalid value for 'choice' parameter")
         return cells0
-    
-    def init_pos0(self) :
-        """
-        Initializes the initial positions.
-
-        Returns:
-            np.array: Array containing initial positions.
-        """
-        pos0 = np.zeros(1)
-        return pos0
-    
-    def init_c0(self) :
-        """
-        Initializes the initial cytokine concentration.
-
-        Returns:
-            np.array: Array containing initial cytokine concentration.
-        """
-        c0 = np.zeros(100)
-        return c0
 
     def prepare_plot(self):
         """
@@ -186,7 +166,7 @@ class Simulation2:
         Performs a single time step of simulation.
         """
         #Tcells and cytokines
-        self.cytokine_edp.cytokine_diffusion() #Perform cytokine diffusion by CD4
+        self.cytokine_edp.cytokine_diffusion() #Perform cytokine diffusion by CD4 and update their phenotype 
         self.tcells_mvt.movement() #Perform T-cells movement
         self.cytokine_edp.update_positions(self.tcells_mvt.pos) #Update position of Tcells in cytokine_edp
         self.cytokine_edp.update_density_Tcells(self.tcells_mvt.T_CD4, self.tcells_mvt.T_CD8) ##Update density of CD4 and CD8 in cytokine_edp

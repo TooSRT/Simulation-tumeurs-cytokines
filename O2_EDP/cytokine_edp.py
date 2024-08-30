@@ -110,7 +110,7 @@ class cytokine_EDP:
         Nx = self.Nx
         delta_t = self.delta_t
         #Update Rp_vect and rc_vect
-        self.Rp_vect = self.Active_CD4 * self.Tau_p_CD4 #Only CD4 produce
+        self.Rp_vect = self.Active_CD4 * self.Tau_p_CD4 #Only active CD4 produce cytokines
         self.Rc_vect = self.Pheno_CD4 * self.Tau_c_CD4 + self.Pheno_CD8 * self.Tau_c_CD8 #Both CD4 and CD8 consume and it does not depend from their activities
         supply = np.zeros(Nx**2)
         identify_consum_immune_cells = np.zeros((Nx**2,))
@@ -181,7 +181,7 @@ class cytokine_EDP:
         if info != 0:
             print("Conjugate gradient did not converge")
         #print("Min cyto = " +str(min(self.cyto)))
-        self.update_pheno()
+        self.update_activity()
     
     def update_positions(self, new_positions):
         """
@@ -192,7 +192,7 @@ class cytokine_EDP:
         """
         self.pos = np.array(new_positions)
 
-    def update_pheno(self):
+    def update_activity(self):
         """
         Updates the active phenotypes of T-cells based on their properties.
         """
@@ -213,15 +213,15 @@ class cytokine_EDP:
 
         Now CD4 can produce cytokine in init_b()
         """
-        n_pos = [i for i, qte in enumerate(self.n) if qte != 0] #get positions of tumors cells
+        n_pos = [i for i, qte in enumerate(self.n) if qte != 0] #Get positions of tumors cells
         self.Tcells_memorize = np.zeros(len(self.pos), dtype=bool)  #Memorize Tcells that are influenced by cytokine or interacted with tumor
 
         for idx, i in enumerate(self.pos):
-            diff = np.array([i] * len(n_pos)) #create list of size n_pos with the position of one T cell
-            diff_abs = n_pos - diff #space between a Tcell and each tumor cell
-            check_side = np.where((-1 <= diff_abs) & (diff_abs <= 1))[0] #Check if the Tcell is on the side of a cell or in the tumor cell
-            check_above = np.where((self.Nx - 1 <= diff_abs) & (diff_abs <= self.Nx + 1))[0] #Check if the Tcell is above a cell
-            check_below = np.where((-self.Nx - 1 <= diff_abs) & (diff_abs <= 1 - self.Nx ))[0] #Check if the Tcell is belowthe a cell
+            diff = np.array([i] * len(n_pos)) #Create list of size n_pos with the position of one T cell
+            diff_abs = n_pos - diff #Return the space between a Tcell and each tumor cell
+            check_side = np.where((-1 <= diff_abs) & (diff_abs <= 1))[0] #Check if the Tcell is on the side of a tumor cell or in the tumor cell
+            check_above = np.where((self.Nx - 1 <= diff_abs) & (diff_abs <= self.Nx + 1))[0] #Check if the Tcell is above a tumor cell
+            check_below = np.where((-self.Nx - 1 <= diff_abs) & (diff_abs <= 1 - self.Nx ))[0] #Check if the Tcell is below a tumor cell
 
 #-----------T-cells loose cytokine influence or don't have enough cytokines to become active-----------
             #Définir le taux seuil à partir du quel une cellule T doit se maintenir pour rester sous l'influence des cytokines
@@ -235,16 +235,29 @@ class cytokine_EDP:
                     Inactive_CD8[idx] = 1
                     Active_CD8[idx] = 0
 
+#-----------T-cells under cytokine influence-----------
+            #Définir le taux seuil à partir du quel une cellule T a assez consommé de cytokines
+            #à cause de la diffusion nous avons toujours une infime concentration en cytokine sur la grille et donc >0 (peu importe l'endroit)
+            elif self.Rc_vect[idx]*self.cyto[self.pos][idx] > 2*(self.T_CD4[i] + self.T_CD8[i]): #Check concentration consumption of each T cell on the case
+                print("conssume cytokine")
+                self.Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
+                if self.T_CD4[i] != 0: 
+                    Inactive_CD4[idx] = 0
+                    Active_CD4[idx] = 1
+                if self.T_CD8[i] != 0:
+                    Inactive_CD8[idx] = 0
+                    Active_CD8[idx] = 1
+
 #-----------T-cells that have interacted with tumor cells-----------
             if check_side: #Check if they are on the side of the tumor cell (i.e check_side not empty)
                 print('test réussi side')
                 self.Tcells_memorize[idx]=True #save T-cells that have interacted with tumors cells
                 if self.T_CD4[i] != 0: #Check if there is a CD4 in this position
                     Inactive_CD4[idx] = 0 
-                    Active_CD4[idx] = 1 #Tcell is now active
+                    Active_CD4[idx] = 1 #CD4 is now active
                 if self.T_CD8[i] != 0:  #Check if there is a CD8 in this position
                     Inactive_CD8[idx] = 0
-                    Active_CD8[idx] = 1
+                    Active_CD8[idx] = 1 #CD8 is now active
 
             elif check_above: #Check if they are above the tumor cell (i.e check_above not empty)
                 print('test réussi above')
@@ -259,19 +272,6 @@ class cytokine_EDP:
             elif check_below: #Check if they are under the tumor cell (i.e check_below not empty)
                 print('test réussi under')
                 self.Tcells_memorize[idx]=True
-                if self.T_CD4[i] != 0: 
-                    Inactive_CD4[idx] = 0
-                    Active_CD4[idx] = 1
-                if self.T_CD8[i] != 0:
-                    Inactive_CD8[idx] = 0
-                    Active_CD8[idx] = 1
-
-#-----------T-cells under cytokine influence-----------
-            #Définir le taux seuil à partir du quel une cellule T a assez consommé de cytokines
-            #à cause de la diffusion nous avons toujours une infime concentration en cytokine sur la grille et donc >0 (peu importe l'endroit)
-            if self.Rc_vect[idx]*self.cyto[self.pos][idx] > 1: #Check concentration consumption of consumer
-                print("conssume cytokine")
-                self.Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
                 if self.T_CD4[i] != 0: 
                     Inactive_CD4[idx] = 0
                     Active_CD4[idx] = 1

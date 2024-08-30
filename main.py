@@ -9,8 +9,7 @@ Date: 17/03/2024
 
 import numpy as np
 import pandas as pd
-from Simulation.simulation import Simulation
-from Simulation.simulation_cytokines import Simulation2
+from Simulation.simulation_cytokines import Simulation
 from O2_EDP.o2_edp import O2_EDP
 from O2_EDP.cytokine_edp import cytokine_EDP
 from O2_EDP.grid_O2 import O2_Grid
@@ -27,8 +26,8 @@ def main():
     # MODEL CONDITIONS #
     ####################
 
-    nb_tumor = 1
-    Nb_cells_cyt = 2
+    nb_tumor = 100
+    Nb_cells_cyt = 1
     unit = "cm"
     distrib = "gaussian"
     proliferation = True
@@ -57,8 +56,7 @@ def main():
     # SIMULATION #
     ##############
 
-    #simulation = Simulation(nb_tumor, unit, distrib, tol, Nx, delta_x, delta_t, Dn, n_max, rn, Dc, c, kappa)
-    simulation = Simulation2(nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, P_prod, P_cons, D_tcells, alpha_c)
+    simulation = Simulation(nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, P_prod, P_cons, D_tcells, alpha_c)
     simulation.load_simulation(iter_max, iter_print)
     
 '''

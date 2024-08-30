@@ -12,8 +12,8 @@ D_cytokine, Cytokines diffusion, 3600e-6,cm^2/h
 Tau_p_CD4, Cytokine production rate by CD4, 100, /h
 Tau_c_CD4, Cytokine consumption rate by CD4, 10, /h
 Tau_c_CD8, Cytokine consumption rate by CD8, 10, /h
-P_CD4, probability of a cell to be CD4 (producteur and consummer of cytokines), 0.49, /
-P_CD8, probability of a cell to be CD8 (consummer of cytokines), 0.5, /
+P_CD4, probability of a cell to be CD4 (producteur and consummer of cytokines), 1, /
+P_CD8, probability of a cell to be CD8 (consummer of cytokines), 0., /
 w_max, Maximal density of one cell of the grid, 16, /
 D_tcells, T cells diffusion, 0.04166667e-3, cm^2/h 
 alpha_c, Cytokine decay, 0.083333, /h

@@ -35,11 +35,13 @@ class Tcells_mvt:
             w0 (numpy.ndarray): Initial density vector.
             n0 (numpy.ndarray): Initial density vector (tumor).
             T0 (numpy.ndarray): Initial density vector (T-cells).
-            n_max (int): Maximum density value.
+            w_max (int): Maximum density value.
             delta_x (float): Spatial step size.
             delta_t (int): Time step size (in hours).
             Pheno_actif_prod (numpy.ndarray): List of cytokines producer (CD8)
             Pheno_actif_cons (numpy.ndarray): List of cytokines consummer (CD4)
+            T_CD4 (numpy.ndarray): List of initial density for CD4.
+            T_CD8 (numpy.ndarray): List of initial density for CD8.
         """
         self.pos = pos0
         self.Nx = Nx
@@ -192,17 +194,13 @@ class Tcells_mvt:
 
     def movement(self):
         """
-        Perform cell movement.
-
-        Args:
-            Rc_vect (list): concentration in cytokine 
+        Perform cell movement for Tcells.
         """
         l=len(self.pos)
         movement_vector = np.zeros(len(self.pos),dtype=int) #initialize our movement vector to update position
-        prob_moove = np.zeros((l,3)) #initialize our probability vector for movement
+        prob_moove = np.zeros((l,3)) #initialize our probability vector for movement of each cell at every time step
 
         for idx, i in enumerate(self.pos):
-            print(self.cytokine_edp.Tcells_memorize)
 #-----------T-cells under cytokine influence or have interacted with tumors-----------
             if self.cytokine_edp.Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines or interacted with tumors
                 #Moove to left
@@ -212,20 +210,20 @@ class Tcells_mvt:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = 1
+                    T_right = 0
                 else:
                     T_right = 0
                 #Stay
                 T_stay = 1 - T_left - T_right
                 '''
                 #Moove below
-                if 0 < i < len(self.Nx): 
+                if 0 < i < len(self.Nx): #Ne doit pas se trouver sur la bordure du bas
                     T_below=....
                 else:
                     T_below=0
 
                 #Moove upper
-                if  len(self.Nx*self.Nx) -  len(self.Nx) < i < len(self.Nx*self.Nx) 
+                if  len(self.Nx*self.Nx) -  len(self.Nx) < i < len(self.Nx*self.Nx) #Ne doit pas se trouver sur la bordure du haut
                     T_upper=...
                 else:
                     T_upper=0
@@ -244,11 +242,9 @@ class Tcells_mvt:
                 elif moove == 'right':
                     movement_vector[idx] = 1 
                     #print(f"Cellule {idx} se déplace vers la droite.")
+                
                 #If stay, movement is 0 (by default)
-                else:
-                    pass
-                    #movement_vector[idx] = 0
-                    #print(f"Cellule {idx} reste sur place.")
+
                 #print(movement_vector)
 
 #-----------T-cells inactive or loose cytokine influence-----------
@@ -267,13 +263,13 @@ class Tcells_mvt:
                 T_stay = 1 - T_left - T_right
                 '''
                 #Moove below
-                if 0 < i < len(self.Nx): 
+                if 0 < i < len(self.Nx): #Ne doit pas se trouver sur la bordure du bas
                     T_below=....
                 else:
                     T_below=0
 
                 #Moove upper
-                if  len(self.Nx*self.Nx) -  len(self.Nx) < i < len(self.Nx*self.Nx) 
+                if  len(self.Nx*self.Nx) -  len(self.Nx) < i < len(self.Nx*self.Nx) #Ne doit pas se trouver sur la bordure du haut
                     T_upper=...
                 else:
                     T_upper=0
@@ -293,11 +289,9 @@ class Tcells_mvt:
                 elif moove == 'right':
                     movement_vector[idx] = 1 
                     #print(f"Cellule {idx} se déplace vers la droite.")
+                
                 #If stay, movement is 0 (by default)
-                else:
-                    pass
-                    #movement_vector[idx] = 0
-                    #print(f"Cellule {idx} reste sur place.")
+
                 #print(movement_vector)
 
         self.pos = self.pos + movement_vector #Update positions
