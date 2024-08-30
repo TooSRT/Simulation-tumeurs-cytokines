@@ -39,7 +39,7 @@ class Simulation:
         c0 = np.zeros(Nx**2)  #Initial cytokine concentration
         n0 = np.bincount(cells0, minlength=Nx**2) #Initial tumor density
 
-        pos0 = [5000] #np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #modify positions and number of Tcells
+        pos0 = np.random.randint(0, int(Nx*Nx), Nb_cells_cyt) #modify positions and number of Tcells
 
         #Initialisation of cells and their phenotype
         Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]

@@ -26,13 +26,13 @@ def main():
     # MODEL CONDITIONS #
     ####################
 
-    nb_tumor = 10
-    Nb_cells_cyt = 1
+    nb_tumor = 50
+    Nb_cells_cyt = 50
     unit = "cm"
     distrib = "gaussian"
     proliferation = True
     tol = 1e-8
-    iter_max = 10
+    iter_max = 15
     iter_print = 1
 
     #############################

@@ -249,7 +249,7 @@ class cytokine_EDP:
                     Active_CD8[idx] = 1
 
 #-----------T-cells that have interacted with tumor cells-----------
-            if check_side: #Check if they are on the side of the tumor cell (i.e check_side not empty)
+            if check_side.size>0: #Check if they are on the side of the tumor cell (i.e check_side not empty)
                 print('test réussi side')
                 self.Tcells_memorize[idx]=True #save T-cells that have interacted with tumors cells
                 if self.T_CD4[i] != 0: #Check if there is a CD4 in this position
@@ -259,7 +259,7 @@ class cytokine_EDP:
                     Inactive_CD8[idx] = 0
                     Active_CD8[idx] = 1 #CD8 is now active
 
-            elif check_above: #Check if they are above the tumor cell (i.e check_above not empty)
+            elif check_above.size>0: #Check if they are above the tumor cell (i.e check_above not empty)
                 print('test réussi above')
                 self.Tcells_memorize[idx]=True 
                 if self.T_CD4[i] != 0:
@@ -269,7 +269,7 @@ class cytokine_EDP:
                     Inactive_CD8[idx] = 0
                     Active_CD8[idx] = 1
 
-            elif check_below: #Check if they are under the tumor cell (i.e check_below not empty)
+            elif check_below.size>0: #Check if they are under the tumor cell (i.e check_below not empty)
                 print('test réussi under')
                 self.Tcells_memorize[idx]=True
                 if self.T_CD4[i] != 0: 

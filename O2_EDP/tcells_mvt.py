@@ -205,24 +205,24 @@ class Tcells_mvt:
             if self.cytokine_edp.Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines or interacted with tumors
                 #Moove to left
                 if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
-                    T_left = 0
+                    T_left = 0.25
                 else:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = 0
+                    T_right = 0.25
                 else:
                     T_right = 0
 
                 #Moove below
-                if 0 < i < len(self.Nx): #Ne doit pas se trouver sur la bordure du bas
-                    T_below = 0
+                if 0 < i < self.Nx: #Ne doit pas se trouver sur la bordure du bas
+                    T_below = 0.25
                 else:
                     T_below = 0
 
                 #Moove upper
                 if  self.Nx*self.Nx - self.Nx < i < self.Nx*self.Nx: #Ne doit pas se trouver sur la bordure du haut
-                    T_upper = 0
+                    T_upper = 0.25
                 else:
                     T_upper = 0
 
@@ -265,7 +265,7 @@ class Tcells_mvt:
                     T_left = 0
                 #Moove to right
                 if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
-                    T_right = 0
+                    T_right = 1
                 else:
                     T_right = 0
                 
