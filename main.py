@@ -27,7 +27,7 @@ def main():
     ####################
 
     nb_tumor = 50
-    Nb_cells_cyt = 50
+    Nb_cells_cyt = 100
     unit = "cm"
     distrib = "gaussian"
     proliferation = True

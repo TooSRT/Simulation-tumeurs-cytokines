@@ -169,7 +169,7 @@ class Simulation:
         self.cytokine_edp.cytokine_diffusion() #Perform cytokine diffusion by CD4 and update their phenotype 
         self.tcells_mvt.movement() #Perform T-cells movement
         self.cytokine_edp.update_positions(self.tcells_mvt.pos) #Update position of Tcells in cytokine_edp
-        self.cytokine_edp.update_density_Tcells(self.tcells_mvt.T_CD4, self.tcells_mvt.T_CD8) ##Update density of CD4 and CD8 in cytokine_edp
+        self.cytokine_edp.update_density_Tcells(self.tcells_mvt.T_CD4, self.tcells_mvt.T_CD8) #Update density of CD4 and CD8 in cytokine_edp
         self.density_edp.update_density_tcells(self.tcells_mvt.T) #Update tumors density in tcells_mvt based on proliferation of tumor
         
         #Tumor

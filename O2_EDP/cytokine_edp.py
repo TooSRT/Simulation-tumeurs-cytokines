@@ -226,7 +226,7 @@ class cytokine_EDP:
 #-----------T-cells loose cytokine influence or don't have enough cytokines to become active-----------
             #Définir le taux seuil à partir du quel une cellule T doit se maintenir pour rester sous l'influence des cytokines
             if self.Rc_vect[idx]*self.cyto[self.pos][idx] <= 1: #Check concentration consumption of consumer (CD4+CD8)
-                print("perte influence cytokine")
+                #print("perte influence cytokine")
                 self.Tcells_memorize[idx]=False #T-cells is not under cytokine influence anymore
                 if self.T_CD4[i] != 0: 
                     Inactive_CD4[idx] = 1 
@@ -239,7 +239,7 @@ class cytokine_EDP:
             #Définir le taux seuil à partir du quel une cellule T a assez consommé de cytokines
             #à cause de la diffusion nous avons toujours une infime concentration en cytokine sur la grille et donc >0 (peu importe l'endroit)
             elif self.Rc_vect[idx]*self.cyto[self.pos][idx] > 2*(self.T_CD4[i] + self.T_CD8[i]): #Check concentration consumption of each T cell on the case
-                print("conssume cytokine")
+                #print("conssume cytokine")
                 self.Tcells_memorize[idx]=True #save T-cells that are under cytokine influence
                 if self.T_CD4[i] != 0: 
                     Inactive_CD4[idx] = 0
@@ -250,7 +250,7 @@ class cytokine_EDP:
 
 #-----------T-cells that have interacted with tumor cells-----------
             if check_side.size>0: #Check if they are on the side of the tumor cell (i.e check_side not empty)
-                print('test réussi side')
+                #print('test réussi side')
                 self.Tcells_memorize[idx]=True #save T-cells that have interacted with tumors cells
                 if self.T_CD4[i] != 0: #Check if there is a CD4 in this position
                     Inactive_CD4[idx] = 0 
@@ -260,7 +260,7 @@ class cytokine_EDP:
                     Active_CD8[idx] = 1 #CD8 is now active
 
             elif check_above.size>0: #Check if they are above the tumor cell (i.e check_above not empty)
-                print('test réussi above')
+                #print('test réussi above')
                 self.Tcells_memorize[idx]=True 
                 if self.T_CD4[i] != 0:
                     Inactive_CD4[idx] = 0 
@@ -270,7 +270,7 @@ class cytokine_EDP:
                     Active_CD8[idx] = 1
 
             elif check_below.size>0: #Check if they are under the tumor cell (i.e check_below not empty)
-                print('test réussi under')
+                #print('test réussi under')
                 self.Tcells_memorize[idx]=True
                 if self.T_CD4[i] != 0: 
                     Inactive_CD4[idx] = 0
