@@ -26,7 +26,7 @@ def main():
     # MODEL CONDITIONS #
     ####################
 
-    nb_tumor = 100
+    nb_tumor = 10
     Nb_cells_cyt = 1
     unit = "cm"
     distrib = "gaussian"

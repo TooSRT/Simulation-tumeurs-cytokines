@@ -198,7 +198,7 @@ class Tcells_mvt:
         """
         l=len(self.pos)
         movement_vector = np.zeros(len(self.pos),dtype=int) #initialize our movement vector to update position
-        prob_moove = np.zeros((l,3)) #initialize our probability vector for movement of each cell at every time step
+        prob_moove = np.zeros((l,5)) #initialize our probability vector for movement of each cell at every time step
 
         for idx, i in enumerate(self.pos):
 #-----------T-cells under cytokine influence or have interacted with tumors-----------
@@ -213,28 +213,31 @@ class Tcells_mvt:
                     T_right = 0
                 else:
                     T_right = 0
-                #Stay
-                T_stay = 1 - T_left - T_right
-                '''
+
                 #Moove below
                 if 0 < i < len(self.Nx): #Ne doit pas se trouver sur la bordure du bas
-                    T_below=....
+                    T_below = 0
                 else:
-                    T_below=0
+                    T_below = 0
 
                 #Moove upper
-                if  len(self.Nx*self.Nx) -  len(self.Nx) < i < len(self.Nx*self.Nx) #Ne doit pas se trouver sur la bordure du haut
-                    T_upper=...
+                if  self.Nx*self.Nx - self.Nx < i < self.Nx*self.Nx: #Ne doit pas se trouver sur la bordure du haut
+                    T_upper = 0
                 else:
-                    T_upper=0
-                '''       
+                    T_upper = 0
+
+                #Stay
+                T_stay = 1 - T_left - T_right - T_upper - T_below
+
                 prob_moove[idx, 0] = T_left
                 prob_moove[idx, 1] = T_right
-                prob_moove[idx, 2] = T_stay
-                #print(prob_moove)
+                prob_moove[idx, 2] = T_upper
+                prob_moove[idx, 3] = T_below
+                prob_moove[idx, 4] = T_stay
 
                 #Choose a direction based on probability 
-                moove = np.random.choice(['left', 'right', 'stay'], p=[T_left, T_right, T_stay])
+                #print(prob_moove)
+                moove = np.random.choice(['left', 'right', 'upper','below','stay'], p=[T_left, T_right, T_upper, T_below, T_stay])
             
                 if moove == 'left':
                     movement_vector[idx] = -1 
@@ -242,6 +245,12 @@ class Tcells_mvt:
                 elif moove == 'right':
                     movement_vector[idx] = 1 
                     #print(f"Cellule {idx} se déplace vers la droite.")
+                elif moove == 'upper':
+                    movement_vector[idx] = self.Nx
+                    #print(f"Cellule {idx} se déplace en haut.")
+                elif moove == 'below':
+                    movement_vector[idx] = - self.Nx
+                    #print(f"Cellule {idx} se déplace en bas.")                    
                 
                 #If stay, movement is 0 (by default)
 
@@ -259,29 +268,31 @@ class Tcells_mvt:
                     T_right = 0
                 else:
                     T_right = 0
-                #Stay
-                T_stay = 1 - T_left - T_right
-                '''
+                
                 #Moove below
-                if 0 < i < len(self.Nx): #Ne doit pas se trouver sur la bordure du bas
-                    T_below=....
+                if 0 < i < self.Nx: #Ne doit pas se trouver sur la bordure du bas
+                    T_below = 0
                 else:
-                    T_below=0
+                    T_below = 0
 
                 #Moove upper
-                if  len(self.Nx*self.Nx) -  len(self.Nx) < i < len(self.Nx*self.Nx) #Ne doit pas se trouver sur la bordure du haut
-                    T_upper=...
+                if  self.Nx*self.Nx -  self.Nx < i < self.Nx*self.Nx: #Ne doit pas se trouver sur la bordure du haut
+                    T_upper = 0
                 else:
-                    T_upper=0
-                '''
-            
+                    T_upper = 0
+                
+                #Stay
+                T_stay = 1 - T_left - T_right - T_upper - T_below
+                
                 prob_moove[idx, 0] = T_left
                 prob_moove[idx, 1] = T_right
-                prob_moove[idx, 2] = T_stay
+                prob_moove[idx, 2] = T_upper
+                prob_moove[idx, 3] = T_below
+                prob_moove[idx, 4] = T_stay
 
                 #Choose a direction based on probability 
                 #print(prob_moove)
-                moove = np.random.choice(['left', 'right', 'stay'], p=[T_left, T_right, T_stay])
+                moove = np.random.choice(['left', 'right', 'upper','below','stay'], p=[T_left, T_right, T_upper, T_below, T_stay])
             
                 if moove == 'left':
                     movement_vector[idx] = -1 
@@ -289,6 +300,12 @@ class Tcells_mvt:
                 elif moove == 'right':
                     movement_vector[idx] = 1 
                     #print(f"Cellule {idx} se déplace vers la droite.")
+                elif moove == 'upper':
+                    movement_vector[idx] = self.Nx
+                    #print(f"Cellule {idx} se déplace en haut.")
+                elif moove == 'below':
+                    movement_vector[idx] = - self.Nx
+                    #print(f"Cellule {idx} se déplace en bas.")                    
                 
                 #If stay, movement is 0 (by default)
 
