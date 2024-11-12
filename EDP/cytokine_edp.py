@@ -1,17 +1,9 @@
 """
 Cytokines EDP Module
 
-This module provides a class cytokines_EDP for simulation of O2 concentration.
+This module provides a class cytokines_EDP for simulation of cytokinesconcentration.
 
-Authors: LANGUE William, DUFRESNE Théo
-Date: 22/03/2024
-
-Usage:
-    from Simulation.o2_edp import O2_EDP
-
-    # Example usage:
-    o2_edp = O2_EDP(Nx=100, c0=np.zeros(100**2), pos=np.array([500, 501]), tol=1e-8, delta_x=0.0001, delta_t=15, D_cytokine=0.1, c=1.0, kappa=0.05)
-    o2_edp.O2_diffusion()
+Author: Servotte Théo
 """
 
 import numpy as np
@@ -67,7 +59,7 @@ class cytokine_EDP:
             tol (float): Tolerance of the conjugate gradient algorithm.
         """
         self.Nx = Nx
-        self.cyto = c0 #à revoir 
+        self.cyto = c0 
         self.pos = pos0
         self.tol = tol 
         self.delta_x = delta_x
@@ -109,6 +101,7 @@ class cytokine_EDP:
         """
         Nx = self.Nx
         delta_t = self.delta_t
+
         #Update Rp_vect and rc_vect
         self.Rp_vect = self.Active_CD4 * self.Tau_p_CD4 #Only active CD4 produce cytokines
         self.Rc_vect = self.Pheno_CD4 * self.Tau_c_CD4 + self.Pheno_CD8 * self.Tau_c_CD8 #Both CD4 and CD8 consume and it does not depend from their activities
@@ -119,16 +112,16 @@ class cytokine_EDP:
         for i, p in enumerate(pos):
             #print(f"Position: {p}, Production: {Rp_vect[i]:.4f}, Consommation: {Rc_vect[i]*self.cyto[self.pos][i]:.4f}")
             supply[p] = delta_t*(self.Rp_vect[i])
-            if self.Rc_vect[i]*self.cyto[self.pos][i] > 0: #cyto[self.pos][i] concentration en cytokine à la position i
+            if self.Rc_vect[i]*self.cyto[self.pos][i] > 0: #cyto[self.pos][i] concentration in cytokine at position i
                 identify_consum_immune_cells[p] = delta_t*self.Rc_vect[i]
 
-        #Màj de la matrice A en fonction des cellules consommatrices
+        #MUpdate matrix A depending on conssuming cells
         A_new = self.A + diags([identify_consum_immune_cells],[0], shape=(Nx**2,Nx**2),format='csc')
         B = diags([np.ones(Nx**2)], [0], shape=(Nx**2, Nx**2), format='csc')
         return B, supply, A_new
    
-    #Matrice A presque similaire à l'oxygène
-    #Ajout d'un terme (delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc')
+    #Matrix A almost similar to the oxygen one
+    #Added (delta_t*alpha_c)*diags([np.ones(Nx**2)],[0], shape=(Nx**2,Nx**2), format='csc')
     def init_A(self):
         Nx = self.Nx
         D_cytokine = self.D_cytokine
@@ -170,7 +163,7 @@ class cytokine_EDP:
         Returns:
             numpy.ndarray: Iterated vector b.
         """
-        B, supply, A_new = self.init_b(self.pos) #mettre à jour le vecteur b à chaque itération 
+        B, supply, A_new = self.init_b(self.pos) #Update vector b at each iteration
         cyto = self.cyto
         b = cyto + supply
         return b, A_new  
@@ -201,18 +194,21 @@ class cytokine_EDP:
         Active_CD8 = self.Active_CD8 
         Inactive_CD4 = self.Inactive_CD4
         Inactive_CD8 = self.Inactive_CD8
+
         """
+        Example:
+
         Inactive_CD4 = [1,1,1,1]
         Active_CD4   = [0,0,0,0]
 
-        Example:
-        After one step, one CD4 become active:
+        After one step, one CD4 become active (due to tumor or cytokine interaction):
 
         Inactive_CD4 = [1,0,1,1]
         Active_CD4   = [0,1,0,0]
 
         Now CD4 can produce cytokine in init_b()
         """
+
         n_pos = [i for i, qte in enumerate(self.n) if qte != 0] #Get positions of tumors cells
         self.Tcells_memorize = np.zeros(len(self.pos), dtype=bool)  #Memorize Tcells that are influenced by cytokine or interacted with tumor
 

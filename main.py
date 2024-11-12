@@ -3,7 +3,7 @@ Simulation Main Module
 
 This module provides the main function to run tumor simulation.
 
-Author: LANGUE William, DUFRESNE Théo
+Author: LANGUE William, DUFRESNE Théo, Servotte Théo
 Date: 17/03/2024
 """
 
@@ -26,8 +26,8 @@ def main():
     # MODEL CONDITIONS #
     ####################
 
-    nb_tumor = 50
-    Nb_cells_cyt = 100
+    nb_tumor = 100
+    Nb_cells_cyt = 50
     unit = "cm"
     distrib = "gaussian"
     proliferation = True

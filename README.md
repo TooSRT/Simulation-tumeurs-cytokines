@@ -2,9 +2,7 @@
 
 ## Description
 
-This code is a tool for simulating tumour evolution. It must help biologists to verify and check experimental hypothesis about tumour evolution.
-
-Version 1.2
+This code is a tool for simulating tumour evolution and the action of differents immune cells on them (T-CD4 and T-CD8). It must help biologists to verify and check experimental hypothesis about tumour evolution.
 
 ## Modules required
 
@@ -20,7 +18,7 @@ Version 1.2
 The program consists of three parts and the main file.<br>
 Simulation is the orchestra conductor file. It prepares the simulation nad contains the time loop of tumour evolution. It uses Grid and Density_EDP files.<br>
 Density_EDP file comes from discretisation of partial differential equation for density. We found two importants algorithms : movement and proliferation of tumours.<br>
-O2_EDP file comes from discretisation of partial differential equation for O2 concentration diffusion.
+EDP file comes from discretisation of partial differential equation for O2 concentration diffusion, cytokines diffusion and the movement associated to T-cells.
 Grid files are classes used to display results.<br>
 After launch simulation in the main file, a plot repertory is created. In this repertory, we found a sub-repertory "pictures" in which there are all plots. Moreover, a graph of number of cells in relation of time and a video of tumour evolution  (based on pictures) are made. <br>
 
@@ -33,6 +31,7 @@ After launch simulation in the main file, a plot repertory is created. In this r
     ####################
 
     nb_tumor = 100
+    Nb_cells_cyt = 50
     unit = "cm"
     distrib = "gaussian"
     proliferation = True
@@ -76,6 +75,4 @@ M. Alexandre Poulain
 
 ## Project status
 
-Under development. For now biologic conditions are not impemented, everything is aleatory.
-Next upgrades for version 2.0 :
-* Link between cells density and O2 concentration
+Under development.

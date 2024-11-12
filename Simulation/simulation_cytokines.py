@@ -45,10 +45,10 @@ class Simulation:
         Vect_unif = np.random.uniform(low=0.0, high=1.0, size=np.size(pos0)) #Vecteur suivant une loi uniforme sur [0,1]
         
         #Density of producer and consumer 
-        Pheno_CD4 = np.zeros(len(pos0))  #Liste phenotype actif produisant n_prod
-        Pheno_CD8 = np.zeros(len(pos0))  #Liste phenotype actif consommant n_cons
+        Pheno_CD4 = np.zeros(len(pos0))  #List of active phenotyope producing n_prod
+        Pheno_CD8 = np.zeros(len(pos0))  #List of active phenotype conssuming n_cons
         
-        #(revoir les probas utilisés)
+        #(Check the probability used)
         for j in range(len(pos0)):
             if Vect_unif[j] <= P_prod:  #Déterminer aléatoirement les CD4
                 Pheno_CD4[j] = 1

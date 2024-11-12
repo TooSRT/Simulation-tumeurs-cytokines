@@ -1,5 +1,7 @@
 """
-Simulate the movement of tcells
+Simulate the movement of Tcells.
+
+Author: Servotte Théo.
 """
 
 import time
@@ -204,22 +206,22 @@ class Tcells_mvt:
 #-----------T-cells under cytokine influence or have interacted with tumors-----------
             if self.cytokine_edp.Tcells_memorize[idx]: #If our T cells has already been influenced by cytokines or interacted with tumors
                 #Moove to left
-                if i % self.Nx != 0: #ne doit pas se trouver sur la colonne gauche
+                if i % self.Nx != 0: #Can't be on the left side of the grid
                     T_left = 0
                 else:
                     T_left = 0
                 #Moove to right
-                if i % self.Nx != self.Nx - 1 : #ne doit pas se trouver sur la colonne droite
+                if i % self.Nx != self.Nx - 1 : #can't be on the right side of the grid
                     T_right = 0.
                 else:
                     T_right = 0
                 #Moove below
-                if not 0 < i < self.Nx: #Ne doit pas se trouver sur la bordure du bas
+                if not 0 < i < self.Nx: #Can't be on the bottom side of the grid
                     T_below = 0.
                 else:
                     T_below = 0
                 #Moove upper
-                if not self.Nx*self.Nx - self.Nx < i < self.Nx*self.Nx: #Ne doit pas se trouver sur la bordure du haut
+                if not self.Nx*self.Nx - self.Nx < i < self.Nx*self.Nx: #Can't be on the top side of the grid
                     T_upper = 1
                 else:
                     T_upper = 0
