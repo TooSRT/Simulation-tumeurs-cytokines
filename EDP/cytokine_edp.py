@@ -7,7 +7,7 @@ Author: Servotte Théo
 """
 
 import numpy as np
-from O2_EDP.tcells_mvt import Tcells_mvt
+from EDP.tcells_mvt import Tcells_mvt
 from scipy.sparse import diags
 from scipy.sparse.linalg import cg
 import sys

@@ -10,10 +10,10 @@ Date: 17/03/2024
 import numpy as np
 import pandas as pd
 from Simulation.simulation_cytokines import Simulation
-from O2_EDP.o2_edp import O2_EDP
-from O2_EDP.cytokine_edp import cytokine_EDP
-from O2_EDP.grid_O2 import O2_Grid
-from O2_EDP.grid_cytokine import cytokine_Grid
+from EDP.o2_edp import O2_EDP
+from EDP.cytokine_edp import cytokine_EDP
+from EDP.grid_O2 import O2_Grid
+from EDP.grid_cytokine import cytokine_Grid
 
 def main():
     """
@@ -27,7 +27,7 @@ def main():
     ####################
 
     nb_tumor = 100
-    Nb_cells_cyt = 50
+    Nb_cells_cyt = 150
     unit = "cm"
     distrib = "gaussian"
     proliferation = True

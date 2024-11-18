@@ -5,9 +5,9 @@ import os
 import re
 from Density_EDP.density_edp import Density_EDP
 from Density_EDP.grid_density import Density_Grid
-from O2_EDP.cytokine_edp import cytokine_EDP 
-from O2_EDP.grid_cytokine import cytokine_Grid
-from O2_EDP.tcells_mvt import Tcells_mvt
+from EDP.cytokine_edp import cytokine_EDP 
+from EDP.grid_cytokine import cytokine_Grid
+from EDP.tcells_mvt import Tcells_mvt
 
 class Simulation:
     def __init__(self, nb_tumor, unit, distrib, tol, Nb_cells_cyt, Nx, delta_x, delta_t, Dn, D_cytokine, w_max, rn, Tau_p_CD4, Tau_c_CD4, Tau_c_CD8, P_prod, P_cons, D_tcells, alpha_c):
